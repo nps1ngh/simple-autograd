@@ -161,13 +161,20 @@ class ReductionOperator(UnaryOperator):
         self.axis = axis
         self.keepdims = keepdims
 
+    def __repr__(self):
+        if self.axis is not None:
+            axis = np.atleast_1d(self.axis)
+            return f"{super().__repr__()[:-1]}{''.join(map(str, axis))}>"
+        else:
+            return super().__repr__()
+
 
 class SumBackward(ReductionOperator):
     def backprop(self, out_grad: np.ndarray) -> None:
         if self.input.requires_grad:
             if self.axis is not None and not self.keepdims:
                 shape = self.input.shape
-                axis = set(self.axis)
+                axis = set(np.atleast_1d(self.axis))
                 # replace reduction dims with 1
                 shape = tuple(1 if i in axis else dim for i, dim in enumerate(shape))
                 input_grad = out_grad.reshape(shape)
@@ -185,7 +192,7 @@ class MeanBackward(ReductionOperator):
         if self.axis is not None:
             if not self.keepdims:  # only reshape if needed
                 shape = self.input.shape
-                axis = set(self.axis)
+                axis = set(np.atleast_1d(self.axis))
                 # replace reduction dims with 1
                 shape = tuple(
                     1 if i in axis else dim for i, dim in enumerate(shape)

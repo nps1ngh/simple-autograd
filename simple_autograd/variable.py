@@ -26,13 +26,19 @@ class Variable(np.ndarray):
     def __repr__(self):
         result = super().__repr__()[:-1]  # last is ')'
 
-        if self.grad_fn is not None and not isinstance(
-            self.grad_fn, operations.DoNothingBackward
-        ):
-            result += f", grad_fn={self.grad_fn}"
+        if self.grad_fn is not None:
+            if not isinstance(
+                self.grad_fn, operations.DoNothingBackward
+            ):
+                result += f", grad_fn={self.grad_fn}"
+            else:
+                result += f", requires_grad={self.requires_grad}"
 
         result += ")"
         return result
+
+    def __str__(self):
+        return self.__repr__()
 
     @staticmethod
     def _ensure_is_variable(other, matrix: bool = False) -> "Variable":
@@ -42,6 +48,7 @@ class Variable(np.ndarray):
                 other = float(other)
                 other = np.atleast_2d(other) if matrix else np.atleast_1d(other)
 
+            other = np.asarray(other, float)  # okay since self is float
             other = Variable(other, requires_grad=False)
 
         return other
@@ -154,7 +161,7 @@ class Variable(np.ndarray):
     # -------------------------------------------------------------
     def sum(self, axis=None, keepdims=False, initial=None, *args, **kwargs):
         # TODO: incorporate other args
-        result_data = super().sum(axis, keepdims, initial)
+        result_data = super().sum(axis=axis, keepdims=keepdims, initial=initial)
 
         return Variable(
             result_data,
