@@ -168,13 +168,24 @@ class Variable(np.ndarray):
             grad_fn=operations.SumBackward(self, axis=axis, keepdims=keepdims),
         )
 
-    def max(self, axis=None, keepdims=False, initial=None, *args, **kwargs):
-        result_data_idx = super().argmax()
+    def max(self, axis=None, keepdims=False, *args, **kwargs):
+        result_data_idx = super().argmax(axis=axis)
+
+        if axis is None:
+            result_data = np.asarray(self.data)[result_data_idx]
+            if keepdims:
+                result_data = np.expand_dims(result_data, tuple(range(len(self.shape))))
+            else:
+                result_data = np.atleast_1d(result_data)  # can be scalar
+        else:
+            result_data = np.take_along_axis(np.asarray(self.data), np.expand_dims(result_data_idx, axis), axis)
+            if not keepdims:
+                result_data = result_data.squeeze()
 
         return Variable(
-            np.asarray(self.data)[result_data_idx],
+            result_data,
             requires_grad=self.requires_grad,
-            grad_fn=operations.MaxRBackward(self, idx=result_data_idx),
+            grad_fn=operations.MaxRBackward(self, axis=axis, keepdims=keepdims, idx=result_data_idx),
         )
 
     def mean(self, axis=None, keepdims=False, *args, **kwargs):

@@ -216,12 +216,28 @@ class MeanBackward(ReductionOperator):
         self._update_grad(self.input, input_grad)
 
 
-class MaxRBackward(UnaryOperator):
-    def __init__(self, input: variable.Variable, idx: np.ndarray):
-        super().__init__(input)
+class MaxRBackward(ReductionOperator):
+    def __init__(
+        self,
+        input: variable.Variable,
+        idx: np.ndarray,
+        axis: Optional[Union[int, Tuple[int]]],
+        keepdims: bool,
+    ):
+        super().__init__(input, axis, keepdims)
         self.idx = idx
 
     def backprop(self, out_grad: np.ndarray) -> None:
         if self.input.requires_grad:
-            grad = out_grad * self.idx
-            self._update_grad(self.input, grad)
+            input_grad = np.zeros_like(self.input.data)
+            if self.axis is None:
+                input_grad[self.idx] = out_grad.item()  # output should be a "scalar"
+            else:
+                np.put_along_axis(
+                    input_grad,
+                    np.expand_dims(self.idx, self.axis),
+                    out_grad if self.keepdims else np.expand_dims(out_grad, self.axis),
+                    self.axis,
+                )
+
+            self._update_grad(self.input, input_grad)

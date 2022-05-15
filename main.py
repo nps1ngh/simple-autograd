@@ -30,7 +30,7 @@ def main2():
     y = np.array([0, 1, 0]) * x
     print(y)
 
-    z = y.mean(1, keepdims=True)
+    z = y.max(1, keepdims=True)
     print(z)
 
     u = np.array([0, 1, 0]) * z
@@ -53,7 +53,7 @@ def main2():
     y.retain_grad()
     print(y)
 
-    z = y.mean(1, keepdims=True)
+    z = y.max(1, keepdims=True).values
     z.retain_grad()
     print(z)
 
