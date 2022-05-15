@@ -135,11 +135,11 @@ class MatMulBackward(NonCommutativeBinaryOperator):
 
 class PowBackward(NonCommutativeBinaryOperator):
     def __init__(
-        self,
-        a: variable.Variable,
-        b: variable.Variable,
-        reverse: bool,
-        output: variable.Variable,
+            self,
+            a: variable.Variable,
+            b: variable.Variable,
+            reverse: bool,
+            output: variable.Variable,
     ):
         super().__init__(a, b, reverse)
         self.output = output
@@ -155,6 +155,35 @@ class PowBackward(NonCommutativeBinaryOperator):
             self._update_grad(self.b, b_grad)
 
 
+class MinMaxBetweenBackward(BinaryOperator):
+    def __init__(self, a: variable.Variable, b: variable.Variable, choose_left: np.ndarray):
+        super().__init__(a, b)
+        self.choose_left = choose_left
+
+    def backprop(self, out_grad: np.ndarray) -> None:
+        if self.a.requires_grad:
+            a_grad = np.where(self.choose_left, out_grad, 0)
+            self._update_grad(self.a, a_grad)
+
+        if self.b.requires_grad:
+            b_grad = np.where(self.choose_left, 0, out_grad)
+            self._update_grad(self.b, b_grad)
+
+
+# -------------------------------------------------------------
+# Elementwise Operators
+# -------------------------------------------------------------
+class ReLUBackward(UnaryOperator):
+    def __init__(self, input: variable.Variable, chosen: np.ndarray):
+        super().__init__(input)
+        self.chosen = chosen
+
+    def backprop(self, out_grad: np.ndarray) -> None:
+        if self.input.requires_grad:
+            input_grad = np.where(self.chosen, out_grad, 0)
+            self._update_grad(self.input, input_grad)
+
+
 # -------------------------------------------------------------
 # Reduction Operators
 # -------------------------------------------------------------
@@ -162,10 +191,10 @@ class PowBackward(NonCommutativeBinaryOperator):
 
 class ReductionOperator(UnaryOperator):
     def __init__(
-        self,
-        input: variable.Variable,
-        axis: Optional[Union[int, Tuple[int]]],
-        keepdims: bool,
+            self,
+            input: variable.Variable,
+            axis: Optional[Union[int, Tuple[int]]],
+            keepdims: bool,
     ):
         super().__init__(input)
         self.axis = axis
@@ -218,11 +247,11 @@ class MeanBackward(ReductionOperator):
 
 class MinMaxRBackward(ReductionOperator):
     def __init__(
-        self,
-        input: variable.Variable,
-        idx: np.ndarray,
-        axis: Optional[Union[int, Tuple[int]]],
-        keepdims: bool,
+            self,
+            input: variable.Variable,
+            idx: np.ndarray,
+            axis: Optional[Union[int, Tuple[int]]],
+            keepdims: bool,
     ):
         super().__init__(input, axis, keepdims)
         self.idx = idx

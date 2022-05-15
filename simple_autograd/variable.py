@@ -154,6 +154,30 @@ class Variable(np.ndarray):
     def __rpow__(self, other):
         return self.__pow__(other, reverse=True)
 
+    def _minmax_between(self, other, do_max=True):
+        other = self._ensure_is_variable(other)
+
+        if do_max:
+            choose_left = np.greater(self.data, other.data)
+        else:
+            choose_left = np.less(self.data, other.data)
+
+        result = Variable(
+            np.where(choose_left, self.data, other.data),
+            requires_grad=self.requires_grad,
+            grad_fn=operations.MinMaxBetweenBackward(
+                self, other, choose_left,
+            ),
+        )
+
+        return result
+
+    def max_between(self, other):
+        return self._minmax_between(other)
+
+    def min_between(self, other):
+        return self._minmax_between(other, do_max=False)
+
     # -------------------------------------------------------------
     # Reduction Operators
     # -------------------------------------------------------------
@@ -215,7 +239,15 @@ class Variable(np.ndarray):
         return self.__pow__(0.5)
 
     def relu(self):
-        raise NotImplementedError
+        choose = np.greater(self.data, 0)
+
+        result = Variable(
+            np.where(choose, self.data, 0),
+            requires_grad=self.requires_grad,
+            grad_fn=operations.ReLUBackward(self, chosen=choose),
+        )
+
+        return result
 
     # -------------------------------------------------------------
     # Not implemented
