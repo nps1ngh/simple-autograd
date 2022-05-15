@@ -27,9 +27,7 @@ class Variable(np.ndarray):
         result = super().__repr__()[:-1]  # last is ')'
 
         if self.grad_fn is not None:
-            if not isinstance(
-                self.grad_fn, operations.DoNothingBackward
-            ):
+            if not isinstance(self.grad_fn, operations.DoNothingBackward):
                 result += f", grad_fn={self.grad_fn}"
             else:
                 result += f", requires_grad={self.requires_grad}"
@@ -168,8 +166,11 @@ class Variable(np.ndarray):
             grad_fn=operations.SumBackward(self, axis=axis, keepdims=keepdims),
         )
 
-    def max(self, axis=None, keepdims=False, *args, **kwargs):
-        result_data_idx = super().argmax(axis=axis)
+    def _minmax(self, axis=None, keepdims=False, do_max=True):
+        if do_max:
+            result_data_idx = super().argmax(axis=axis)
+        else:
+            result_data_idx = super().argmin(axis=axis)
 
         if axis is None:
             result_data = np.asarray(self.data)[result_data_idx]
@@ -178,15 +179,25 @@ class Variable(np.ndarray):
             else:
                 result_data = np.atleast_1d(result_data)  # can be scalar
         else:
-            result_data = np.take_along_axis(np.asarray(self.data), np.expand_dims(result_data_idx, axis), axis)
+            result_data = np.take_along_axis(
+                np.asarray(self.data), np.expand_dims(result_data_idx, axis), axis
+            )
             if not keepdims:
                 result_data = result_data.squeeze()
 
         return Variable(
             result_data,
             requires_grad=self.requires_grad,
-            grad_fn=operations.MaxRBackward(self, axis=axis, keepdims=keepdims, idx=result_data_idx),
+            grad_fn=operations.MinMaxRBackward(
+                self, axis=axis, keepdims=keepdims, idx=result_data_idx
+            ),
         )
+
+    def max(self, axis=None, keepdims=False, *args, **kwargs):
+        return self._minmax(axis=axis, keepdims=keepdims)
+
+    def min(self, axis=None, keepdims=False, *args, **kwargs):
+        return self._minmax(axis=axis, keepdims=keepdims, do_max=False)
 
     def mean(self, axis=None, keepdims=False, *args, **kwargs):
         result_data = super().mean(axis=axis, keepdims=keepdims)

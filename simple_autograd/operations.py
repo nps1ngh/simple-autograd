@@ -216,7 +216,7 @@ class MeanBackward(ReductionOperator):
         self._update_grad(self.input, input_grad)
 
 
-class MaxRBackward(ReductionOperator):
+class MinMaxRBackward(ReductionOperator):
     def __init__(
         self,
         input: variable.Variable,
