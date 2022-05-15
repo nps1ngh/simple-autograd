@@ -42,6 +42,17 @@ class Operator(abc.ABC):
         shape_diff = len(grad.shape) - len(var.grad.shape)
         if shape_diff > 0:
             grad = grad.sum(axis=tuple(range(shape_diff)))
+        if grad.shape != var.grad.shape:
+            # if still not the same, then identify where broadcasting
+            # happened and sum-reduce if needed
+            # (only when grad.shape[i] > var.grad.shape[i])
+            reduce_axis = tuple(
+                i
+                for i in range(min(len(grad.shape), len(var.grad.shape)))
+                if grad.shape[i] > var.grad.shape[i]
+                and (var.grad.shape[i] == 1)
+            )
+            grad = grad.sum(axis=reduce_axis, keepdims=True)
 
         # update
         var.grad += grad
@@ -194,9 +205,7 @@ class MeanBackward(ReductionOperator):
                 shape = self.input.shape
                 axis = set(np.atleast_1d(self.axis))
                 # replace reduction dims with 1
-                shape = tuple(
-                    1 if i in axis else dim for i, dim in enumerate(shape)
-                )
+                shape = tuple(1 if i in axis else dim for i, dim in enumerate(shape))
                 out_grad = out_grad.reshape(shape)
             input_grad = out_grad / np.prod(self.axis)
         else:

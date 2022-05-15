@@ -30,7 +30,7 @@ def main2():
     y = np.array([0, 1, 0]) * x
     print(y)
 
-    z = y.sum(1)
+    z = y.sum(1, keepdims=True)
     print(z)
 
     u = np.array([0, 1, 0]) * z
@@ -40,6 +40,7 @@ def main2():
     t.backward()
 
     print(f"{x.grad=}")
+    print(f"{z.grad=}")
     print("Now torch")
     import torch
     x = torch.arange(3, 6).reshape(-1, 1) * torch.arange(1, 4)
@@ -50,7 +51,8 @@ def main2():
     y = torch.tensor([0, 1, 0]) * x
     print(y)
 
-    z = y.sum(1)
+    z = y.sum(1, keepdims=True)
+    z.retain_grad()
     print(z)
 
     u = torch.tensor([0, 1, 0]) * z
@@ -60,6 +62,7 @@ def main2():
     t.backward()
 
     print(f"{x.grad=}")
+    print(f"{z.grad=}")
 
 if __name__ == '__main__':
     main2()
