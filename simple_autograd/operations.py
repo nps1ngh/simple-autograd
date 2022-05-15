@@ -49,8 +49,7 @@ class Operator(abc.ABC):
             reduce_axis = tuple(
                 i
                 for i in range(min(len(grad.shape), len(var.grad.shape)))
-                if grad.shape[i] > var.grad.shape[i]
-                and (var.grad.shape[i] == 1)
+                if grad.shape[i] > var.grad.shape[i] and (var.grad.shape[i] == 1)
             )
             grad = grad.sum(axis=reduce_axis, keepdims=True)
 
@@ -207,7 +206,9 @@ class MeanBackward(ReductionOperator):
                 # replace reduction dims with 1
                 shape = tuple(1 if i in axis else dim for i, dim in enumerate(shape))
                 out_grad = out_grad.reshape(shape)
-            input_grad = out_grad / np.prod(self.axis)
+            input_grad = out_grad / np.prod(
+                list(self.input.shape[i] for i in np.atleast_1d(self.axis))
+            )
         else:
             # no axis
             input_grad = out_grad / np.prod(self.input.shape)

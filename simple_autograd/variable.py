@@ -160,7 +160,6 @@ class Variable(np.ndarray):
     # Reduction Operators
     # -------------------------------------------------------------
     def sum(self, axis=None, keepdims=False, initial=None, *args, **kwargs):
-        # TODO: incorporate other args
         result_data = super().sum(axis=axis, keepdims=keepdims, initial=initial)
 
         return Variable(
@@ -176,6 +175,15 @@ class Variable(np.ndarray):
             np.asarray(self.data)[result_data_idx],
             requires_grad=self.requires_grad,
             grad_fn=operations.MaxRBackward(self, idx=result_data_idx),
+        )
+
+    def mean(self, axis=None, keepdims=False, *args, **kwargs):
+        result_data = super().mean(axis=axis, keepdims=keepdims)
+
+        return Variable(
+            result_data,
+            requires_grad=self.requires_grad,
+            grad_fn=operations.MeanBackward(self, axis=axis, keepdims=keepdims),
         )
 
     # -------------------------------------------------------------
