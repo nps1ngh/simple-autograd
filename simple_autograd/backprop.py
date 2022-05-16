@@ -36,9 +36,9 @@ def backward(var: variable.Variable):
 
     var.grad = np.ones_like(var.data)
     for v in order:
-        # assert v.grad is not None, f"Gradient was None of {v}"
+        assert not v.requires_grad or v.grad is not None, f"Gradient was None of {v}"
         v.grad_fn.backprop(out_grad=v.grad)
 
         # clear out if not needed anymore
-        # if not v.requires_grad:
-        #     v.grad = None
+        if not v._retain_grad:
+            v.grad = None

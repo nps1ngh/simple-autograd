@@ -16,9 +16,11 @@ class Variable(np.ndarray):
         self,
         _: np.ndarray,
         requires_grad: bool = True,
+        retain_grad: bool = True,
         grad_fn: operations.Operator = operations.DoNothingBackward(),
     ):
         self.requires_grad: bool = requires_grad
+        self._retain_grad: bool = retain_grad and requires_grad
 
         self.grad: Optional[np.ndarray] = None
         self.grad_fn = grad_fn
@@ -54,7 +56,7 @@ class Variable(np.ndarray):
                 other = np.atleast_2d(other) if matrix else np.atleast_1d(other)
 
             other = np.asarray(other, float)  # okay since self is float
-            other = Variable(other, requires_grad=False)
+            other = Variable(other, requires_grad=False, retain_grad=False)
 
         return other
 
@@ -71,17 +73,43 @@ class Variable(np.ndarray):
         """
         return Variable(self, requires_grad=self.requires_grad)
 
+    def retain_grad(self, value=True) -> None:
+        """
+        Retain gradients during backpropagation.
+        """
+        self._retain_grad = value
+
     # -------------------------------------------------------------
     # Operators
     # -------------------------------------------------------------
+    def _create_variable(self, data, grad_fn, other=None) -> "Variable":
+        """
+        Helper function for creating variable inside.
+        :param data: The data of the new variable.
+        :type data: np.ndarray or memoryview
+        :param grad_fn: The gradient function.
+        :type grad_fn: operations.Operation
+        :param other: The other variable. Only needed for binary ops.
+        :type other: Variable
+        :return: the resultant variable
+        :rtype: Variable
+        """
+        other_requires_grad = False if other is None else other.requires_grad
+
+        result = Variable(
+            data,
+            requires_grad=self.requires_grad or other_requires_grad,
+            retain_grad=False,
+            grad_fn=grad_fn,
+        )
+        return result
+
     def __add__(self, other) -> "Variable":
         other = self._ensure_is_variable(other)
 
-        result_data = super().__add__(other)  # other.data + self.data
-        result = Variable(
-            result_data,
-            requires_grad=self.requires_grad or other.requires_grad,
-            grad_fn=operations.AddBackward(self, other),
+        result_data = np.add(self.data, other.data)
+        result = self._create_variable(
+            data=result_data, other=other, grad_fn=operations.AddBackward(self, other),
         )
 
         return result
@@ -98,9 +126,9 @@ class Variable(np.ndarray):
             # other WILL be a variable so fine
             result_data = super(type(other), other).__sub__(self)
 
-        result = Variable(
-            result_data,
-            requires_grad=self.requires_grad or other.requires_grad,
+        result = self._create_variable(
+            data=result_data,
+            other=other,
             grad_fn=operations.SubBackward(self, other, reverse=reverse),
         )
 
@@ -113,10 +141,8 @@ class Variable(np.ndarray):
         other = self._ensure_is_variable(other)
 
         result_data = super().__mul__(other)  # other.data * self.data
-        result = Variable(
-            result_data,
-            requires_grad=self.requires_grad or other.requires_grad,
-            grad_fn=operations.MulBackward(self, other),
+        result = self._create_variable(
+            data=result_data, other=other, grad_fn=operations.MulBackward(self, other),
         )
 
         return result
@@ -131,9 +157,9 @@ class Variable(np.ndarray):
             result_data = super().__matmul__(other)
         else:
             result_data = super(type(other), other).__matmul__(self)
-        result = Variable(
-            result_data,
-            requires_grad=self.requires_grad or other.requires_grad,
+        result = self._create_variable(
+            data=result_data,
+            other=other,
             grad_fn=operations.MatMulBackward(self, other, reverse=reverse),
         )
 
@@ -150,10 +176,10 @@ class Variable(np.ndarray):
         else:
             result_data = super(type(other), other).__pow__(self)
 
-        result = Variable(
-            result_data,
-            requires_grad=self.requires_grad,
-            grad_fn=operations.PowBackward(self, other, reverse=reverse),
+        result = self._create_variable(
+            data=result_data,
+            other=other,
+            grad_fn=operations.PowBackward(self, other, reverse=reverse, output=result_data),
         )
 
         return result
@@ -169,9 +195,10 @@ class Variable(np.ndarray):
         else:
             choose_left = np.less(self.data, other.data)
 
-        result = Variable(
-            np.where(choose_left, self.data, other.data),
-            requires_grad=self.requires_grad,
+        result_data = np.where(choose_left, self.data, other.data)
+        result = self._create_variable(
+            data=result_data,
+            other=other,
             grad_fn=operations.MinMaxBetweenBackward(self, other, choose_left,),
         )
 
@@ -189,11 +216,11 @@ class Variable(np.ndarray):
     def sum(self, axis=None, keepdims=False, initial=None, *args, **kwargs):
         result_data = super().sum(axis=axis, keepdims=keepdims, initial=initial)
 
-        return Variable(
-            result_data,
-            requires_grad=self.requires_grad,
+        result = self._create_variable(
+            data=result_data,
             grad_fn=operations.SumBackward(self, axis=axis, keepdims=keepdims),
         )
+        return result
 
     def _minmax(self, axis=None, keepdims=False, do_max=True):
         if do_max:
@@ -214,13 +241,13 @@ class Variable(np.ndarray):
             if not keepdims:
                 result_data = result_data.squeeze()
 
-        return Variable(
-            result_data,
-            requires_grad=self.requires_grad,
+        result = self._create_variable(
+            data=result_data,
             grad_fn=operations.MinMaxRBackward(
                 self, axis=axis, keepdims=keepdims, idx=result_data_idx
             ),
         )
+        return result
 
     def max(self, axis=None, keepdims=False, *args, **kwargs):
         return self._minmax(axis=axis, keepdims=keepdims)
@@ -231,11 +258,11 @@ class Variable(np.ndarray):
     def mean(self, axis=None, keepdims=False, *args, **kwargs):
         result_data = super().mean(axis=axis, keepdims=keepdims)
 
-        return Variable(
-            result_data,
-            requires_grad=self.requires_grad,
+        result = self._create_variable(
+            data=result_data,
             grad_fn=operations.MeanBackward(self, axis=axis, keepdims=keepdims),
         )
+        return result
 
     # -------------------------------------------------------------
     # Elementwise functional Operators
@@ -246,9 +273,9 @@ class Variable(np.ndarray):
     def relu(self):
         choose = np.greater(self.data, 0)
 
-        result = Variable(
-            np.where(choose, self.data, 0),
-            requires_grad=self.requires_grad,
+        result_data = np.where(choose, self.data, 0)
+        result = self._create_variable(
+            data=result_data,
             grad_fn=operations.ReLUBackward(self, chosen=choose),
         )
 
@@ -269,15 +296,16 @@ class Variable(np.ndarray):
     def __getitem__(self, item) -> "Variable":
         item = np.index_exp[item]
         result_data = super().view(type=np.ndarray)[item]
-        result = Variable(
-            result_data,
-            requires_grad=self.requires_grad,
+        result = self._create_variable(
+            data=result_data,
             grad_fn=operations.IndexingBackward(self, item),
         )
         return result
 
     def __setitem__(self, key, value):
         if self.requires_grad:
-            raise RuntimeError("Tried changing the value of an array that requires grad!")
+            raise RuntimeError(
+                "Tried changing the value of an array that requires grad!"
+            )
         else:
             super().__setitem__(key, value)
