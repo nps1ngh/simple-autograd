@@ -38,6 +38,12 @@ class Variable(np.ndarray):
     def __str__(self):
         return self.__repr__()
 
+    def __hash__(self):
+        # needed for top-sorting
+        # this is fine since we only care about individual nodes in the
+        # graph, which this facilitates
+        return id(self)
+
     @staticmethod
     def _ensure_is_variable(other, matrix: bool = False) -> "Variable":
         if not isinstance(other, Variable):
@@ -165,9 +171,7 @@ class Variable(np.ndarray):
         result = Variable(
             np.where(choose_left, self.data, other.data),
             requires_grad=self.requires_grad,
-            grad_fn=operations.MinMaxBetweenBackward(
-                self, other, choose_left,
-            ),
+            grad_fn=operations.MinMaxBetweenBackward(self, other, choose_left,),
         )
 
         return result
@@ -261,8 +265,18 @@ class Variable(np.ndarray):
     # -------------------------------------------------------------
     # Others
     # -------------------------------------------------------------
-    def __hash__(self):
-        # needed for top-sorting
-        # this is fine since we only care about individual nodes in the
-        # graph, which this facilitates
-        return id(self)
+    def __getitem__(self, item) -> "Variable":
+        item = np.index_exp[item]
+        result_data = np.take(self.data, item)
+        result = Variable(
+            result_data,
+            requires_grad=self.requires_grad,
+            grad_fn=operations.IndexingBackward(self, item),
+        )
+        return result
+
+    def __setitem__(self, key, value):
+        if self.requires_grad:
+            raise RuntimeError("Tried changing the value of an array that requires grad!")
+        else:
+            super().__setitem__(key, value)

@@ -135,11 +135,11 @@ class MatMulBackward(NonCommutativeBinaryOperator):
 
 class PowBackward(NonCommutativeBinaryOperator):
     def __init__(
-            self,
-            a: variable.Variable,
-            b: variable.Variable,
-            reverse: bool,
-            output: variable.Variable,
+        self,
+        a: variable.Variable,
+        b: variable.Variable,
+        reverse: bool,
+        output: variable.Variable,
     ):
         super().__init__(a, b, reverse)
         self.output = output
@@ -156,7 +156,9 @@ class PowBackward(NonCommutativeBinaryOperator):
 
 
 class MinMaxBetweenBackward(BinaryOperator):
-    def __init__(self, a: variable.Variable, b: variable.Variable, choose_left: np.ndarray):
+    def __init__(
+        self, a: variable.Variable, b: variable.Variable, choose_left: np.ndarray
+    ):
         super().__init__(a, b)
         self.choose_left = choose_left
 
@@ -191,10 +193,10 @@ class ReLUBackward(UnaryOperator):
 
 class ReductionOperator(UnaryOperator):
     def __init__(
-            self,
-            input: variable.Variable,
-            axis: Optional[Union[int, Tuple[int]]],
-            keepdims: bool,
+        self,
+        input: variable.Variable,
+        axis: Optional[Union[int, Tuple[int]]],
+        keepdims: bool,
     ):
         super().__init__(input)
         self.axis = axis
@@ -247,11 +249,11 @@ class MeanBackward(ReductionOperator):
 
 class MinMaxRBackward(ReductionOperator):
     def __init__(
-            self,
-            input: variable.Variable,
-            idx: np.ndarray,
-            axis: Optional[Union[int, Tuple[int]]],
-            keepdims: bool,
+        self,
+        input: variable.Variable,
+        idx: np.ndarray,
+        axis: Optional[Union[int, Tuple[int]]],
+        keepdims: bool,
     ):
         super().__init__(input, axis, keepdims)
         self.idx = idx
@@ -270,3 +272,19 @@ class MinMaxRBackward(ReductionOperator):
                 )
 
             self._update_grad(self.input, input_grad)
+
+
+# -------------------------------------------------------------
+# Others
+# -------------------------------------------------------------
+class IndexingBackward(UnaryOperator):
+    def __init__(self, input: variable.Variable, item_idx):
+        super().__init__(input)
+        self.item_idx = item_idx
+
+    def backprop(self, out_grad: np.ndarray) -> None:
+        if self.input.grad is None:
+            self.input.grad = np.zeros_like(self.input.data)  # init
+
+        # yes this is all you need to update the grad
+        np.add.at(self.input.grad, self.item_idx, out_grad)
