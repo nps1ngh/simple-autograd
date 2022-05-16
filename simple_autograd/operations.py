@@ -33,8 +33,7 @@ class Operator(abc.ABC):
         :param grad: The update
         :type grad: np.ndarray
         """
-        if var.grad is None:
-            var.grad = np.zeros_like(var.data)  # init
+        var.init_grad()
 
         grad = np.atleast_1d(grad)  # make sure it's an array
 

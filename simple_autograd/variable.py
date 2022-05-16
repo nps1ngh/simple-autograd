@@ -42,6 +42,13 @@ class Variable(np.ndarray):
     def grad(self, value):
         self._grad = value
 
+    def init_grad(self) -> None:
+        """
+        Initializes gradient if needed.
+        """
+        if self._grad is None:
+            self._grad = np.zeros_like(self.data)  # init
+
     def __repr__(self):
         result = repr(super().view(np.ndarray))  # super().__repr__ leads to problems
         result = result[:-1]  # last is ')'
