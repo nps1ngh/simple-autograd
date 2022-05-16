@@ -1,13 +1,13 @@
 import numpy as np
 import torch
 
-import simple_autograd.variable as variable
+from simple_autograd import Variable
 
 
 def main1():
     x = np.ones(3) * 3
     print(f"{x=}")
-    x = variable.Variable(x)
+    x = Variable(x)
     print(f"{x=}")
 
     y = np.ones((4, 3)) - x
@@ -25,7 +25,7 @@ def main1():
 def main2():
     x = np.arange(3, 6).reshape(-1, 1) * np.arange(1, 4)
     x = np.asarray(x, float)
-    x = variable.Variable(x, requires_grad=True)
+    x = Variable(x, requires_grad=True)
     print(f"{x=}")
 
     y = np.array([0, 1, 0]) * x
@@ -71,7 +71,7 @@ def main2():
 def main3():
     x = np.ones((3, 4))
     print(f"{x=}")
-    x = variable.Variable(x, requires_grad=True)
+    x = Variable(x, requires_grad=True)
     print(f"{x=}")
     y = x[[0, 0]]
     print(f"{y=}")
