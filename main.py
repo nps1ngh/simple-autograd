@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 import simple_autograd.variable as variable
 
@@ -43,7 +44,6 @@ def main2():
     print(f"{z.grad=}")
     print(f"{y.grad=}")
     print("Now torch")
-    import torch
     x = torch.arange(3, 6).reshape(-1, 1) * torch.arange(1, 4)
     x = x.float()
     x.requires_grad = True
@@ -67,5 +67,36 @@ def main2():
     print(f"{z.grad=}")
     print(f"{y.grad=}")
 
+
+def main3():
+    x = np.ones((3, 4))
+    print(f"{x=}")
+    x = variable.Variable(x, requires_grad=True)
+    print(f"{x=}")
+    y = x[[0, 0]]
+    print(f"{y=}")
+    z = y.sum()
+    print(f"{z=}")
+    z.backward()
+
+    print(f"{x.grad=}")
+    print(f"{y.grad=}")
+    print(f"{z.grad=}")
+
+    x = torch.ones(3, 4, requires_grad=True)
+    print(f"{x=}")
+    y = x[[0, 0]]
+    y.retain_grad()
+    print(f"{y=}")
+    z = y.sum()
+    z.retain_grad()
+    print(f"{z=}")
+    z.backward()
+
+    print(f"{x.grad=}")
+    print(f"{y.grad=}")
+    print(f"{z.grad=}")
+
+
 if __name__ == '__main__':
-    main2()
+    main3()

@@ -24,7 +24,8 @@ class Variable(np.ndarray):
         self.grad_fn = grad_fn
 
     def __repr__(self):
-        result = super().__repr__()[:-1]  # last is ')'
+        result = repr(super().view(np.ndarray))  # super().__repr__ leads to problems
+        result = result[:-1]  # last is ')'
 
         if self.grad_fn is not None:
             if not isinstance(self.grad_fn, operations.DoNothingBackward):
@@ -267,7 +268,7 @@ class Variable(np.ndarray):
     # -------------------------------------------------------------
     def __getitem__(self, item) -> "Variable":
         item = np.index_exp[item]
-        result_data = np.take(self.data, item)
+        result_data = super().view(type=np.ndarray)[item]
         result = Variable(
             result_data,
             requires_grad=self.requires_grad,
