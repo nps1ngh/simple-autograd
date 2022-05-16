@@ -1,4 +1,5 @@
 from typing import Optional
+import warnings
 
 import numpy as np
 
@@ -22,8 +23,24 @@ class Variable(np.ndarray):
         self.requires_grad: bool = requires_grad
         self._retain_grad: bool = retain_grad and requires_grad
 
-        self.grad: Optional[np.ndarray] = None
+        self._grad: Optional[np.ndarray] = None
         self.grad_fn = grad_fn
+
+    @property
+    def grad(self):
+        return self._grad
+
+    @grad.setter
+    def grad(self, value):
+        if self.grad is None and not isinstance(
+            self.grad_fn, operations.DoNothingBackward
+        ):
+            warnings.warn(
+                "If you want to access the .grad attribute of a non-leaf variable "
+                "then you should call .retain_grad() on it before calling "
+                ".backward() !"
+            )
+        self._grad = value
 
     def __repr__(self):
         result = repr(super().view(np.ndarray))  # super().__repr__ leads to problems
@@ -179,7 +196,9 @@ class Variable(np.ndarray):
         result = self._create_variable(
             data=result_data,
             other=other,
-            grad_fn=operations.PowBackward(self, other, reverse=reverse, output=result_data),
+            grad_fn=operations.PowBackward(
+                self, other, reverse=reverse, output=result_data
+            ),
         )
 
         return result
@@ -275,8 +294,7 @@ class Variable(np.ndarray):
 
         result_data = np.where(choose, self.data, 0)
         result = self._create_variable(
-            data=result_data,
-            grad_fn=operations.ReLUBackward(self, chosen=choose),
+            data=result_data, grad_fn=operations.ReLUBackward(self, chosen=choose),
         )
 
         return result
@@ -297,8 +315,7 @@ class Variable(np.ndarray):
         item = np.index_exp[item]
         result_data = super().view(type=np.ndarray)[item]
         result = self._create_variable(
-            data=result_data,
-            grad_fn=operations.IndexingBackward(self, item),
+            data=result_data, grad_fn=operations.IndexingBackward(self, item),
         )
         return result
 
