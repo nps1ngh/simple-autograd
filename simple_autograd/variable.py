@@ -28,18 +28,18 @@ class Variable(np.ndarray):
 
     @property
     def grad(self):
-        return self._grad
-
-    @grad.setter
-    def grad(self, value):
-        if self.grad is None and not isinstance(
-            self.grad_fn, operations.DoNothingBackward
+        if self._grad is None and not isinstance(
+                self.grad_fn, operations.DoNothingBackward
         ):
             warnings.warn(
                 "If you want to access the .grad attribute of a non-leaf variable "
                 "then you should call .retain_grad() on it before calling "
                 ".backward() !"
             )
+        return self._grad
+
+    @grad.setter
+    def grad(self, value):
         self._grad = value
 
     def __repr__(self):

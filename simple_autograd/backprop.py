@@ -40,5 +40,5 @@ def backward(var: variable.Variable):
         v.grad_fn.backprop(out_grad=v.grad)
 
         # clear out if not needed anymore
-        if not v._retain_grad:
+        if not v.retain_grad:
             v.grad = None

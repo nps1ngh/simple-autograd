@@ -11,9 +11,11 @@ def main1():
     print(f"{x=}")
 
     y = np.ones((4, 3)) - x
+    y.retain_grad()
     print(f"{y=}")
 
     z = (y * np.array([2, 2, 2], dtype=float)).sum()
+    z.retain_grad()
     print(f"{z=}")
 
     z.backward()
@@ -29,14 +31,18 @@ def main2():
     print(f"{x=}")
 
     y = np.array([0, 1, 0]) * x
+    y.retain_grad()
     print(y)
 
     z = y.max(1, keepdims=True)
+    z.retain_grad()
     print(z)
 
     u = np.array([0, 1, 0]) * z
+    u.retain_grad()
     print(u)
     t = u.mean()
+    t.retain_grad()
     print(t)
     t.backward()
 
@@ -74,8 +80,10 @@ def main3():
     x = Variable(x, requires_grad=True)
     print(f"{x=}")
     y = x[[0, 0]]
+    y.retain_grad()
     print(f"{y=}")
     z = y.sum()
+    z.retain_grad()
     print(f"{z=}")
     z.backward()
 
