@@ -201,6 +201,17 @@ class MinMaxBetweenBackward(BinaryOperator):
 # -------------------------------------------------------------
 # Elementwise Operators
 # -------------------------------------------------------------
+class SqrtBackward(UnaryOperator):
+    def __init__(self, input: variable.Variable, output: np.ndarray):
+        super().__init__(input)
+        self.output = output
+
+    def backprop(self, out_grad: np.ndarray) -> None:
+        if self.input.requires_grad:
+            input_grad = np.reciprocal(np.multiply(2, self.output))
+            self._update_grad(self.input, input_grad)
+
+
 class ReLUBackward(UnaryOperator):
     def __init__(self, input: variable.Variable, chosen: np.ndarray):
         super().__init__(input)

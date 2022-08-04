@@ -330,7 +330,11 @@ class Variable(np.ndarray):
     # Elementwise functional Operators
     # -------------------------------------------------------------
     def sqrt(self):
-        return self.__pow__(0.5)
+        result_data = np.sqrt(self.data)
+        result = self._create_variable(
+            data=result_data, grad_fn=operations.SqrtBackward(self, output=result_data),
+        )
+        return result
 
     def relu(self):
         choose = np.greater(self.data, 0)
