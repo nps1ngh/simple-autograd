@@ -21,7 +21,7 @@ class Variable(np.ndarray):
         grad_fn: operations.Operator = operations.DoNothingBackward(),
     ):
         self.requires_grad: bool = requires_grad
-        self._retain_grad: bool = retain_grad and requires_grad
+        self.retains_grad: bool = retain_grad and requires_grad
 
         self._grad: Optional[np.ndarray] = None
         self.grad_fn = grad_fn
@@ -101,7 +101,7 @@ class Variable(np.ndarray):
         """
         Retain gradients during backpropagation.
         """
-        self._retain_grad = value
+        self.retains_grad = value
 
     # -------------------------------------------------------------
     # Operators
