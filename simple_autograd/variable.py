@@ -128,6 +128,16 @@ class Variable(np.ndarray):
         )
         return result
 
+    def __pos__(self) -> "Variable":
+        return self  # no need to do anything
+
+    def __neg__(self) -> "Variable":
+        result_data = super().__neg__()
+        result = self._create_variable(
+            data=result_data, grad_fn=operations.NegBackward(self),
+        )
+        return result
+
     def __add__(self, other) -> "Variable":
         other = self._ensure_is_variable(other)
 

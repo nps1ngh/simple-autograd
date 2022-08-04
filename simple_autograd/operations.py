@@ -94,6 +94,13 @@ class NonCommutativeBinaryOperator(BinaryOperator, abc.ABC):
             super().__init__(a, b)
 
 
+class NegBackward(UnaryOperator):
+    def backprop(self, out_grad: np.ndarray) -> None:
+        if self.input.requires_grad:
+            input_grad = np.negative(out_grad)
+            self._update_grad(self.input, input_grad)
+
+
 class AddBackward(BinaryOperator):
     def backprop(self, out_grad: np.ndarray) -> None:
         if self.a.requires_grad:

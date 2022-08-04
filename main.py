@@ -115,10 +115,24 @@ def main4():
     (x / 300).sum().backward()
     print(f"{x.grad=}")
 
+def main5():
+    x = Variable(np.ones(10))
+    x_neg = -x
+    summe = x_neg.sum()
+    summe.backward()
+
+    print(f"{x.grad=}")
+
+    x = torch.tensor(np.ones(10))
+    x.requires_grad = True
+    x_neg = -x
+    summe = x_neg.sum()
+    summe.backward()
+    print(f"{x.grad=}")
 
 
 if __name__ == '__main__':
     # main3()
     # main1()
     # main2()
-    main4()
+    main5()
