@@ -300,6 +300,7 @@ class MinMaxRBackward(ReductionOperator):
             input_grad = np.zeros_like(self.input.data)
             if self.axis is None:
                 input_grad[self.idx] = out_grad.item()  # output should be a "scalar"
+                input_grad /= len(self.idx[0])
             else:
                 np.put_along_axis(
                     input_grad,
