@@ -173,11 +173,11 @@ class PowBackward(NonCommutativeBinaryOperator):
     def backprop(self, out_grad: np.ndarray) -> None:
         if self.a.requires_grad:
             # np.func can process memoryviews no problem
-            a_grad = out_grad * np.multiply(self.output.data, np.log(self.a.data))
+            a_grad = out_grad * self.b.data * np.power(self.a.data, np.subtract(self.b.data, 1))
             self._update_grad(self.a, a_grad)
 
         if self.b.requires_grad:
-            b_grad = self.b.data * np.power(self.a.data, np.sub(self.b.data, 1))
+            b_grad = out_grad * np.multiply(self.output.data, np.log(self.a.data))
             self._update_grad(self.b, b_grad)
 
 

@@ -228,7 +228,7 @@ class Variable(np.ndarray):
     def __rmatmul__(self, other) -> "Variable":
         return self.__matmul__(other, reverse=True)
 
-    def __pow__(self, other, reverse=True):
+    def __pow__(self, other, reverse=False):
         other = self._ensure_is_variable(other)
 
         if not reverse:
