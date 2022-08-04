@@ -174,6 +174,22 @@ class Variable(np.ndarray):
     def __rmul__(self, other) -> "Variable":
         return self.__mul__(other)  # is commutative
 
+    def __truediv__(self, other, reverse=False) -> "Variable":
+        other = self._ensure_is_variable(other)
+
+        if not reverse:
+            result_data = super().__truediv__(other)
+        else:
+            result_data = super(type(other), other).__truediv__(self)
+        result = self._create_variable(
+            data=result_data, other=other, grad_fn=operations.DivBackward(self, other, reverse=reverse),
+        )
+
+        return result
+
+    def __rtruediv__(self, other) -> "Variable":
+        return self.__truediv__(other, reverse=True)
+
     def __matmul__(self, other, reverse=False) -> "Variable":
         other = self._ensure_is_variable(other, matrix=True)
 
@@ -314,6 +330,13 @@ class Variable(np.ndarray):
 
     def __rmod__(self, other):
         return NotImplemented
+
+    def __floordiv__(self, other):
+        return NotImplemented
+
+    def __rfloordiv__(self, other):
+        return NotImplemented
+
 
     # -------------------------------------------------------------
     # Others

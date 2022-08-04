@@ -121,6 +121,17 @@ class MulBackward(BinaryOperator):
             self._update_grad(self.b, b_grad)
 
 
+class DivBackward(NonCommutativeBinaryOperator):
+    def backprop(self, out_grad: np.ndarray) -> None:
+        if self.a.requires_grad:
+            a_grad = out_grad / self.b.data
+            self._update_grad(self.a, a_grad)
+
+        if self.b.requires_grad:
+            b_grad = np.negative(self.a.data) / np.power(self.b.data, 2)  # -1/x^2
+            self._update_grad(self.b, b_grad)
+
+
 class MatMulBackward(NonCommutativeBinaryOperator):
     def backprop(self, out_grad: np.ndarray) -> None:
         if self.a.requires_grad:

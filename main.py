@@ -105,8 +105,20 @@ def main3():
     print(f"{y.grad=}")
     print(f"{z.grad=}")
 
+def main4():
+    x = Variable(np.ones(10) * 30)
+    (x / 300).sum().backward()
+    print(f"{x.grad=}")
+
+    x = torch.tensor(np.ones(10) * 30)
+    x.requires_grad = True
+    (x / 300).sum().backward()
+    print(f"{x.grad=}")
+
+
 
 if __name__ == '__main__':
-    main3()
-    main1()
-    main2()
+    # main3()
+    # main1()
+    # main2()
+    main4()
