@@ -200,6 +200,16 @@ class Variable(np.ndarray):
     def __rtruediv__(self, other) -> "Variable":
         return self.__truediv__(other, reverse=True)
 
+    def __mod__(self, other) -> "Variable":
+        other = self._ensure_is_variable(other)
+
+        result_data = super().__mod__(other)
+        result = self._create_variable(
+            data=result_data, other=other, grad_fn=operations.ModBackward(self, other, reverse=False),
+        )
+
+        return result
+
     def __matmul__(self, other, reverse=False) -> "Variable":
         other = self._ensure_is_variable(other, matrix=True)
 
@@ -335,9 +345,6 @@ class Variable(np.ndarray):
     # -------------------------------------------------------------
     # Not implemented
     # -------------------------------------------------------------
-    def __mod__(self, other):
-        return NotImplemented
-
     def __rmod__(self, other):
         return NotImplemented
 

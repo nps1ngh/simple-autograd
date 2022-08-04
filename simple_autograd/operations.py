@@ -139,6 +139,15 @@ class DivBackward(NonCommutativeBinaryOperator):
             self._update_grad(self.b, b_grad)
 
 
+class ModBackward(NonCommutativeBinaryOperator):
+    def backprop(self, out_grad: np.ndarray) -> None:
+        if self.a.requires_grad:
+            self._update_grad(self.a, out_grad)  # same as a - b
+
+        if self.b.requires_grad:
+            raise RuntimeError("the derivative for 'b' is not implemented!")
+
+
 class MatMulBackward(NonCommutativeBinaryOperator):
     def backprop(self, out_grad: np.ndarray) -> None:
         if self.a.requires_grad:
