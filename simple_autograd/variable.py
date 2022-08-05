@@ -276,6 +276,7 @@ class Variable(np.ndarray):
     # Reduction Operators
     # -------------------------------------------------------------
     def sum(self, axis=None, keepdims=False, initial=0, *args, **kwargs):
+        keepdims = keepdims or kwargs.get("keepdim", False)
         result_data = super().sum(axis=axis, keepdims=keepdims, initial=initial)
 
         result = self._create_variable(
@@ -302,7 +303,7 @@ class Variable(np.ndarray):
                 np.asarray(self.data), np.expand_dims(result_data_idx, axis), axis
             )
             if not keepdims:
-                result_data = result_data.squeeze()
+                result_data = result_data.reshape(self.shape[:axis] + self.shape[axis + 1:])
 
         result = self._create_variable(
             data=result_data,
@@ -313,12 +314,15 @@ class Variable(np.ndarray):
         return result
 
     def max(self, axis=None, keepdims=False, *args, **kwargs):
+        keepdims = keepdims or kwargs.get("keepdim", False)
         return self._minmax(axis=axis, keepdims=keepdims)
 
     def min(self, axis=None, keepdims=False, *args, **kwargs):
+        keepdims = keepdims or kwargs.get("keepdim", False)
         return self._minmax(axis=axis, keepdims=keepdims, do_max=False)
 
     def mean(self, axis=None, keepdims=False, *args, **kwargs):
+        keepdims = keepdims or kwargs.get("keepdim", False)
         result_data = super().mean(axis=axis, keepdims=keepdims)
 
         result = self._create_variable(
