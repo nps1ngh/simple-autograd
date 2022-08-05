@@ -88,7 +88,11 @@ EXPRESSIONS = [
                   for binary_op in ["+", "-", "*", "/", "**"]
               ] + [
                   f"a.{f_op}()"
-                  for f_op in ["relu", "sum", "min", "max", "mean", "sqrt"]
+                  for f_op in ["relu", "sqrt"]
+              ] + [
+                  f"a.{r_op}({args})"
+                  for r_op in ["sum", "min", "max", "mean"]
+                  for args in ["", "0", "0, keepdim=True"]
               ] + [
                   f"a.{binary_f_op}(b)"
                   for binary_f_op in ["maximum", "minimum"]
@@ -127,13 +131,16 @@ class TestOperators:
 
         b = 30  # some scalar
 
+        result_torch = eval(expr.replace("a", "a_torch", 1))
+        if isinstance(result_torch, tuple):  # for min max stuff
+            result_torch = result_torch.values
+
         result = eval(expr)
+        np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
+
+        result_torch.sum().backward()
         result.sum().backward()
 
-        result_torch = eval(expr.replace("a", "a_torch", 1))
-        result_torch.sum().backward()
-
-        np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
         np.testing.assert_array_almost_equal(a.grad, a_torch.grad.numpy())
 
     @pytest.mark.parametrize("expr", filter(lambda e: "b" in e and e not in [
