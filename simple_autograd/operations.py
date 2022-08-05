@@ -181,7 +181,7 @@ class PowBackward(NonCommutativeBinaryOperator):
             self._update_grad(self.b, b_grad)
 
 
-class MinMaxBetweenBackward(BinaryOperator):
+class MinimumMaximumBackward(BinaryOperator):
     def __init__(
         self, a: variable.Variable, b: variable.Variable, choose_left: np.ndarray
     ):

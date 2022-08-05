@@ -249,7 +249,7 @@ class Variable(np.ndarray):
     def __rpow__(self, other):
         return self.__pow__(other, reverse=True)
 
-    def _minmax_between(self, other, do_max=True):
+    def _minimummaximum(self, other, do_max=True):
         other = self._ensure_is_variable(other)
 
         if do_max:
@@ -261,16 +261,16 @@ class Variable(np.ndarray):
         result = self._create_variable(
             data=result_data,
             other=other,
-            grad_fn=operations.MinMaxBetweenBackward(self, other, choose_left,),
+            grad_fn=operations.MinimumMaximumBackward(self, other, choose_left),
         )
 
         return result
 
-    def max_between(self, other):
-        return self._minmax_between(other)
+    def maximum(self, other):
+        return self._minimummaximum(other)
 
-    def min_between(self, other):
-        return self._minmax_between(other, do_max=False)
+    def minimum(self, other):
+        return self._minimummaximum(other, do_max=False)
 
     # -------------------------------------------------------------
     # Reduction Operators
