@@ -31,7 +31,7 @@ def backward(var: variable.Variable):
     # get topsort
     order = _get_order(var)
     assert (
-        order[0] == var
+        order[0] is var
     ), "first node should be the one on which .backward() was called!"
 
     var.grad = np.ones_like(var.data)
