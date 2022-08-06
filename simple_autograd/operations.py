@@ -153,14 +153,14 @@ class MatMulBackward(NonCommutativeBinaryOperator):
         if self.a.requires_grad:
             b = np.asarray(self.b.data)
             if b.ndim > 1:
-                b = np.moveaxis(b, -1, -2)
+                b = np.swapaxes(b, -1, -2)
             a_grad = out_grad @ b
             self._update_grad(self.a, a_grad)
 
         if self.b.requires_grad:
             a = np.asarray(self.a.data)
             if a.ndim > 1:
-                a = np.moveaxis(a, -1, -2)
+                a = np.swapaxes(a, -1, -2)
             b_grad = a  @ out_grad
             self._update_grad(self.b, b_grad)
 
@@ -172,14 +172,14 @@ class ScalarProductBackward(NonCommutativeBinaryOperator):
         if self.a.requires_grad:
             b = np.asarray(self.b.data)
             if b.ndim > 1:
-                b = np.moveaxis(b, -1, -2)
+                b = np.swapaxes(b, -1, -2)
             a_grad = out_grad * b
             self._update_grad(self.a, a_grad)
 
         if self.b.requires_grad:
             a = np.asarray(self.a.data)
             if a.ndim > 1:
-                a = np.moveaxis(a, -1, -2)
+                a = np.swapaxes(a, -1, -2)
             b_grad = out_grad * a
             self._update_grad(self.b, b_grad)
 
