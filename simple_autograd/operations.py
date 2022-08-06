@@ -38,7 +38,7 @@ class Operator(abc.ABC):
         grad = np.atleast_1d(grad)  # make sure it's an array
 
         # sum reduce if needed
-        shape_diff = len(grad.shape) - len(var.grad.shape)
+        shape_diff = grad.ndim - var.grad.ndim
         if shape_diff > 0:
             grad = grad.sum(axis=tuple(range(shape_diff)))
         if grad.shape != var.grad.shape:
@@ -47,7 +47,7 @@ class Operator(abc.ABC):
             # (only when grad.shape[i] > var.grad.shape[i])
             reduce_axis = tuple(
                 i
-                for i in range(min(len(grad.shape), len(var.grad.shape)))
+                for i in range(min(grad.ndim, var.grad.ndim))
                 if grad.shape[i] > var.grad.shape[i] and (var.grad.shape[i] == 1)
             )
             grad = grad.sum(axis=reduce_axis, keepdims=True)

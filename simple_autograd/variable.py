@@ -301,7 +301,7 @@ class Variable(np.ndarray):
             result_data = np.asarray(self.data).ravel()[result_data_idx]
             result_data_idx = np.where(np.equal(self.data, result_data))
             if keepdims:
-                result_data = np.expand_dims(result_data, tuple(range(len(self.shape))))
+                result_data = np.expand_dims(result_data, tuple(range(self.ndim)))
             else:
                 result_data = np.atleast_1d(result_data)  # scalar
         else:
