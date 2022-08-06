@@ -217,10 +217,16 @@ class Variable(np.ndarray):
             result_data = super().__matmul__(other)
         else:
             result_data = super(type(other), other).__matmul__(self)
+
+        if self.ndim == 1 and other.ndim == 1:
+            backward_op = operations.ScalarProductBackward
+        else:
+            backward_op = operations.MatMulBackward
+
         result = self._create_variable(
             data=result_data,
             other=other,
-            grad_fn=operations.MatMulBackward(self, other, reverse=reverse),
+            grad_fn=backward_op(self, other, reverse=reverse),
         )
 
         return result
