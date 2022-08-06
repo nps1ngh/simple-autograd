@@ -337,6 +337,21 @@ class MinMaxRBackward(ReductionOperator):
             self._update_grad(self.input, input_grad)
 
 
+class TransposeBackward(UnaryOperator):
+    def __init__(self, input: variable.Variable, source: int, destination: int):
+        super().__init__(input)
+        self.source = source
+        self.destination = destination
+
+    def backprop(self, out_grad: np.ndarray) -> None:
+        input_grad = np.swapaxes(out_grad, self.destination, self.source)
+        self.input.init_grad()
+        assert (
+            input_grad.shape == self.input.grad.shape
+        ), f"Unequal shapes! {input_grad.shape=} and {self.input.grad.shape=}"
+        self.input.grad += input_grad
+
+
 # -------------------------------------------------------------
 # Others
 # -------------------------------------------------------------

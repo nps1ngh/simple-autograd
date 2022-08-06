@@ -377,6 +377,50 @@ class Variable(np.ndarray):
             super().__setitem__(key, value)
 
     # -------------------------------------------------------------
+    # Shape methods
+    # -------------------------------------------------------------
+    def transpose(self, source: int, destination: int):
+        """
+        For transposing axes.
+
+        Short note on design choice:
+        We do not follow np.ndarray.transpose but instead
+        torch.Tensor.transpose because then we have something to
+        compare our implementation to.
+
+        :param source: The source axis index.
+        :type source: int
+        :param destination: The target axis index.
+        :type destination: int
+        :return: The transposed array.
+        :rtype: Variable
+        """
+        assert isinstance(source, int)
+        assert isinstance(destination, int)
+        assert -self.ndim <= source < self.ndim
+        assert -self.ndim <= destination < self.ndim
+
+        result_data = np.swapaxes(self.data, source, destination)
+        result = self._create_variable(
+            data=result_data,
+            grad_fn=operations.TransposeBackward(self, source, destination),
+        )
+
+        return result
+
+    def t(self):
+        """
+        Works just like torch.Tensor.t()
+        Expects self to be <= 2D.
+        Does a transpose if 2D. Otherwise, does nothing (for 0D and 1D).
+        """
+        assert self.ndim <= 2, f"Array should be <= 2D. Was {self.ndim}D"
+        if self.ndim <= 1:
+            return self
+        else:
+            return self.transpose(0, 1)
+
+    # -------------------------------------------------------------
     # Some common methods which are not implemented.
     # Serves to warn the end-user.
     # np.ndarray has too many functions, so I'm not going to list

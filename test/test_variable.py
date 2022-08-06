@@ -4,6 +4,7 @@ Check correctness with torch.
 """
 
 import warnings
+import random
 
 import numpy as np
 import pytest
@@ -415,3 +416,49 @@ class TestMatMul:
         np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
         np.testing.assert_array_almost_equal(a.grad, a_torch.grad.numpy())
         np.testing.assert_array_almost_equal(b.grad, b_torch.grad.numpy())
+
+
+class TestTranspose:
+    @pytest.fixture(scope="class", autouse=True, params=range(42, 42 * 2))
+    def params(self, shape, request):
+        random.seed(request.param)
+        n = len(shape)
+
+        source = random.choice(range(-n, n))
+        destination = random.choice(range(-n, n))
+        return shape, source, destination
+
+    def test(self, params):
+        shape, source, destination = params
+        x_data = np.ones(shape)
+        x = Variable(x_data.copy())
+        x_torch = torch.tensor(x_data.copy())
+        x_torch.requires_grad = True
+
+
+        result = x.transpose(source, destination)
+        result.sum().backward()
+
+        result_torch = x_torch.transpose(source, destination)
+        result_torch.sum().backward()
+
+        np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
+        np.testing.assert_array_almost_equal(x.grad, x_torch.grad.numpy())
+
+    def test_t(self, shape):
+        if len(shape) > 2:
+            return  # corresponding assert will trigger no need
+
+        x_data = np.ones(shape)
+        x = Variable(x_data.copy())
+        x_torch = torch.tensor(x_data.copy())
+        x_torch.requires_grad = True
+
+        result = x.t()
+        result.sum().backward()
+
+        result_torch = x_torch.t()
+        result_torch.sum().backward()
+
+        np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
+        np.testing.assert_array_almost_equal(x.grad, x_torch.grad.numpy())
