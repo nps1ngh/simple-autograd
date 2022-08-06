@@ -248,6 +248,28 @@ class ReLUBackward(UnaryOperator):
             self._update_grad(self.input, input_grad)
 
 
+class ExpBackward(UnaryOperator):
+    def __init__(self, input: variable.Variable, out: variable.Variable):
+        super().__init__(input)
+        self.out = out
+
+    def backprop(self, out_grad: np.ndarray) -> None:
+        if self.input.requires_grad:
+            input_grad = np.multiply(out_grad, self.out.data)
+            self._update_grad(self.input, input_grad)
+
+
+class SigmoidBackward(UnaryOperator):
+    def __init__(self, input: variable.Variable, exp_m_x: variable.Variable, out: variable.Variable):
+        super().__init__(input)
+        self.exp_m_x = exp_m_x
+        self.out = out
+
+    def backprop(self, out_grad: np.ndarray) -> None:
+        if self.input.requires_grad:
+            input_grad = np.multiply(out_grad, self.exp_m_x.data) * np.square(self.out.data)
+            self._update_grad(self.input, input_grad)
+
 # -------------------------------------------------------------
 # Reduction Operators
 # -------------------------------------------------------------

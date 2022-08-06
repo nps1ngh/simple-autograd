@@ -367,6 +367,35 @@ class Variable(np.ndarray):
 
         return result
 
+    def exp(self):
+        result_data = np.exp(self.data)
+        result = self._create_variable(
+            data=result_data,
+            grad_fn=operations.ExpBackward(self, out=result_data),
+        )
+
+        return result
+
+    def sigmoid(self):
+        exp_m_x = np.exp(np.negative(self.data))
+        result_data = np.reciprocal(1 + exp_m_x)
+        result = self._create_variable(
+            data=result_data,
+            grad_fn=operations.SigmoidBackward(self, exp_m_x, result_data),
+        )
+
+        return result
+
+    def softmax(self, axis):
+        # TODO: dedicated faster backward pass
+        x = self - self.max(axis, keepdims=True)
+
+        exp = x.exp()
+        denom = exp.sum(axis, keepdims=True)
+        out = exp / denom
+
+        return out
+
     # -------------------------------------------------------------
     # Others
     # -------------------------------------------------------------

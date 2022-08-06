@@ -89,7 +89,7 @@ EXPRESSIONS = [
                   for binary_op in ["+", "-", "*", "/", "**"]
               ] + [
                   f"a.{f_op}()"
-                  for f_op in ["relu", "sqrt"]
+                  for f_op in ["relu", "sqrt", "exp", "sigmoid"]
               ] + [
                   f"a.{r_op}({args})"
                   for r_op in ["sum", "min", "max", "mean"]
@@ -495,3 +495,35 @@ class TestReshape:
         np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
         np.testing.assert_array_almost_equal(x.grad, x_torch.grad.numpy())
 
+
+class TestSoftmax:
+    def test_softmax_ones(self, shape):
+        x_data = np.ones(shape)
+        x = Variable(x_data.copy())
+        x_torch = torch.tensor(x_data.copy())
+        x_torch.requires_grad = True
+
+        result = x.softmax(0)
+        result.sum().backward()
+
+        result_torch = x_torch.softmax(0)
+        result_torch.sum().backward()
+
+        np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
+        np.testing.assert_array_almost_equal(x.grad, x_torch.grad.numpy())
+
+    def test_softmax_randn(self, shape):
+        np.random.seed(42)
+        x_data = np.random.randn(*shape)
+        x = Variable(x_data.copy())
+        x_torch = torch.tensor(x_data.copy())
+        x_torch.requires_grad = True
+
+        result = x.softmax(0)
+        result.sum().backward()
+
+        result_torch = x_torch.softmax(0)
+        result_torch.sum().backward()
+
+        np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
+        np.testing.assert_array_almost_equal(x.grad, x_torch.grad.numpy())
