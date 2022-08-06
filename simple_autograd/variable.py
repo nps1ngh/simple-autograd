@@ -396,6 +396,15 @@ class Variable(np.ndarray):
 
         return out
 
+    def log(self):
+        result_data = np.log(self.data)
+        result = self._create_variable(
+            data=result_data,
+            grad_fn=operations.LogBackward(self),
+        )
+
+        return result
+
     # -------------------------------------------------------------
     # Others
     # -------------------------------------------------------------

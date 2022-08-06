@@ -270,6 +270,13 @@ class SigmoidBackward(UnaryOperator):
             input_grad = np.multiply(out_grad, self.exp_m_x.data) * np.square(self.out.data)
             self._update_grad(self.input, input_grad)
 
+
+class LogBackward(UnaryOperator):
+    def backprop(self, out_grad: np.ndarray) -> None:
+        if self.input.requires_grad:
+            input_grad = np.divide(out_grad, self.input.data)
+            self._update_grad(self.input, input_grad)
+
 # -------------------------------------------------------------
 # Reduction Operators
 # -------------------------------------------------------------
