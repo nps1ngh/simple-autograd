@@ -365,6 +365,7 @@ class TestMinimumMaximum:
         np.testing.assert_array_almost_equal(b.grad, b_torch.grad.numpy())
 
     def test_random(self, func, shape):
+        np.random.seed(42)
         a_data = np.random.randn(*shape)
         a = Variable(a_data.copy())
         a_torch = torch.tensor(a_data.copy())
@@ -379,6 +380,36 @@ class TestMinimumMaximum:
         result.sum().backward()
 
         result_torch = getattr(torch, func)(a_torch, b_torch)
+        result_torch.sum().backward()
+
+        np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
+        np.testing.assert_array_almost_equal(a.grad, a_torch.grad.numpy())
+        np.testing.assert_array_almost_equal(b.grad, b_torch.grad.numpy())
+
+
+class TestMatMul:
+    def test(self, shape):
+        if len(shape) > 1:
+            # swap last two
+            b_shape = (*shape[:-2], shape[-1], shape[-2])
+        else:
+            b_shape = shape
+
+        np.random.seed(42)
+        a_data = np.random.randn(*shape)
+        a = Variable(a_data.copy())
+        a_torch = torch.tensor(a_data.copy())
+        a_torch.requires_grad = True
+
+        b_data = np.random.randn(*b_shape)
+        b = Variable(b_data.copy())
+        b_torch = torch.tensor(b_data.copy())
+        b_torch.requires_grad = True
+
+        result = a @ b
+        result.sum().backward()
+
+        result_torch = a_torch @ b_torch
         result_torch.sum().backward()
 
         np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
