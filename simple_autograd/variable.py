@@ -110,6 +110,14 @@ class Variable(np.ndarray):
         """
         self.retains_grad = value
 
+    def zero_grad(self) -> None:
+        """
+        Set gradients if available to 0.
+        """
+        if self.grad is not None:
+            self.grad.fill(0)
+
+
     # -------------------------------------------------------------
     # Operators
     # -------------------------------------------------------------
