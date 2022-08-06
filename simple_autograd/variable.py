@@ -405,6 +405,14 @@ class Variable(np.ndarray):
 
         return result
 
+    def log_softmax(self, axis):
+        # based on https://stackoverflow.com/a/61570752/10614892
+        c = self.max(axis, keepdims=True)
+        x = self - c
+        logsumexp = x.exp().sum(axis, keepdims=True).log()
+
+        return x - logsumexp
+
     # -------------------------------------------------------------
     # Others
     # -------------------------------------------------------------

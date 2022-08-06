@@ -496,33 +496,34 @@ class TestReshape:
         np.testing.assert_array_almost_equal(x.grad, x_torch.grad.numpy())
 
 
+@pytest.mark.parametrize("func", ["softmax", "log_softmax"])
 class TestSoftmax:
-    def test_softmax_ones(self, shape):
+    def test_softmax_ones(self, func, shape):
         x_data = np.ones(shape)
         x = Variable(x_data.copy())
         x_torch = torch.tensor(x_data.copy())
         x_torch.requires_grad = True
 
-        result = x.softmax(0)
+        result = getattr(x, func)(axis=0)
         result.sum().backward()
 
-        result_torch = x_torch.softmax(0)
+        result_torch = getattr(x_torch, func)(axis=0)
         result_torch.sum().backward()
 
         np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
         np.testing.assert_array_almost_equal(x.grad, x_torch.grad.numpy())
 
-    def test_softmax_randn(self, shape):
+    def test_softmax_randn(self, func, shape):
         np.random.seed(42)
         x_data = np.random.randn(*shape)
         x = Variable(x_data.copy())
         x_torch = torch.tensor(x_data.copy())
         x_torch.requires_grad = True
 
-        result = x.softmax(0)
+        result = getattr(x, func)(axis=0)
         result.sum().backward()
 
-        result_torch = x_torch.softmax(0)
+        result_torch = getattr(x_torch, func)(axis=0)
         result_torch.sum().backward()
 
         np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
