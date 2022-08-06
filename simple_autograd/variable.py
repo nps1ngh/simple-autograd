@@ -358,19 +358,6 @@ class Variable(np.ndarray):
         return result
 
     # -------------------------------------------------------------
-    # Not implemented
-    # -------------------------------------------------------------
-    def __rmod__(self, other):
-        return NotImplemented
-
-    def __floordiv__(self, other):
-        return NotImplemented
-
-    def __rfloordiv__(self, other):
-        return NotImplemented
-
-
-    # -------------------------------------------------------------
     # Others
     # -------------------------------------------------------------
     def __getitem__(self, item) -> "Variable":
@@ -388,3 +375,27 @@ class Variable(np.ndarray):
             )
         else:
             super().__setitem__(key, value)
+
+    # -------------------------------------------------------------
+    # Some common methods which are not implemented.
+    # Serves to warn the end-user.
+    # np.ndarray has too many functions, so I'm not going to list
+    # every not implemented one.
+    # -------------------------------------------------------------
+    def __rmod__(self, other):
+        return NotImplemented
+
+    def __floordiv__(self, other):
+        return NotImplemented
+
+    def __rfloordiv__(self, other):
+        return NotImplemented
+
+    def resize(self, new_shape, refcheck=True):
+        raise NotImplementedError("Use .reshape instead!")
+
+    @property
+    def T(self):
+        raise NotImplementedError("See .transpose()")
+
+
