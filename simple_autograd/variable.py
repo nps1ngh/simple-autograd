@@ -72,7 +72,7 @@ class Variable(np.ndarray):
         return id(self)
 
     @staticmethod
-    def _ensure_is_variable(other, matrix: bool = False) -> "Variable":
+    def ensure_is_variable(other, matrix: bool = False) -> "Variable":
         if not isinstance(other, Variable):
             if not isinstance(other, np.ndarray):
                 # convert to array
@@ -139,7 +139,7 @@ class Variable(np.ndarray):
         return result
 
     def __add__(self, other) -> "Variable":
-        other = self._ensure_is_variable(other)
+        other = self.ensure_is_variable(other)
 
         result_data = np.add(self.data, other.data)
         result = self._create_variable(
@@ -152,7 +152,7 @@ class Variable(np.ndarray):
         return self.__add__(other)  # is commutative
 
     def __sub__(self, other, reverse=False) -> "Variable":
-        other = self._ensure_is_variable(other)
+        other = self.ensure_is_variable(other)
 
         if not reverse:
             result_data = super().__sub__(other)
@@ -172,7 +172,7 @@ class Variable(np.ndarray):
         return self.__sub__(other, reverse=True)
 
     def __mul__(self, other) -> "Variable":
-        other = self._ensure_is_variable(other)
+        other = self.ensure_is_variable(other)
 
         result_data = super().__mul__(other)  # other.data * self.data
         result = self._create_variable(
@@ -185,7 +185,7 @@ class Variable(np.ndarray):
         return self.__mul__(other)  # is commutative
 
     def __truediv__(self, other, reverse=False) -> "Variable":
-        other = self._ensure_is_variable(other)
+        other = self.ensure_is_variable(other)
 
         if not reverse:
             result_data = super().__truediv__(other)
@@ -201,7 +201,7 @@ class Variable(np.ndarray):
         return self.__truediv__(other, reverse=True)
 
     def __mod__(self, other) -> "Variable":
-        other = self._ensure_is_variable(other)
+        other = self.ensure_is_variable(other)
 
         result_data = super().__mod__(other)
         result = self._create_variable(
@@ -211,7 +211,7 @@ class Variable(np.ndarray):
         return result
 
     def __matmul__(self, other, reverse=False) -> "Variable":
-        other = self._ensure_is_variable(other, matrix=True)
+        other = self.ensure_is_variable(other, matrix=True)
 
         if not reverse:
             result_data = super().__matmul__(other)
@@ -235,7 +235,7 @@ class Variable(np.ndarray):
         return self.__matmul__(other, reverse=True)
 
     def __pow__(self, other, reverse=False):
-        other = self._ensure_is_variable(other)
+        other = self.ensure_is_variable(other)
 
         if not reverse:
             result_data = super().__pow__(other)
@@ -256,7 +256,7 @@ class Variable(np.ndarray):
         return self.__pow__(other, reverse=True)
 
     def _minimummaximum(self, other, do_max=True):
-        other = self._ensure_is_variable(other)
+        other = self.ensure_is_variable(other)
 
         if do_max:
             choose_left = np.greater(self.data, other.data)
