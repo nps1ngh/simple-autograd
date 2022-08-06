@@ -346,8 +346,7 @@ class IndexingBackward(UnaryOperator):
         self.item_idx = item_idx
 
     def backprop(self, out_grad: np.ndarray) -> None:
-        if self.input.grad is None:
-            self.input.grad = np.zeros_like(self.input.data)  # init
+        self.input.init_grad()
 
         # yes this is all you need to update the grad
         np.add.at(self.input.grad, self.item_idx, out_grad)
