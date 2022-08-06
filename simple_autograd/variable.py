@@ -1,5 +1,5 @@
-from typing import Optional
 import warnings
+from typing import Optional
 
 import numpy as np
 
@@ -8,23 +8,30 @@ from . import operations
 
 
 class Variable(np.ndarray):
-    def __new__(cls, data: np.ndarray, *args, **kwargs):
-        assert data.dtype == "float", "only floats supported"
-        data = np.asarray(data).view(cls)
-        return data
+    def __new__(cls, input_array,
+                requires_grad=True, retains_grad=True, grad_fn=operations.DoNothingBackward(),
+                ):
+        obj = np.asarray(input_array).view(cls)
 
-    def __init__(
-        self,
-        _: np.ndarray,
-        requires_grad: bool = True,
-        retain_grad: bool = True,
-        grad_fn: operations.Operator = operations.DoNothingBackward(),
-    ):
-        self.requires_grad: bool = requires_grad
-        self.retains_grad: bool = retain_grad and requires_grad
+        obj.requires_grad = requires_grad
+        obj.retains_grad = retains_grad and requires_grad
+
+        obj._grad = None
+        obj.grad_fn = grad_fn
+
+        return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None:
+            return
+
+        assert obj.dtype in [float, np.float32, np.float16], f"only floats supported! but was {obj.dtype}"
+
+        self.requires_grad: bool = getattr(obj, "requires_grad", True)
+        self.retains_grad: bool = getattr(obj, "retains_grad", True) and self.requires_grad
 
         self._grad: Optional[np.ndarray] = None
-        self.grad_fn = grad_fn
+        self.grad_fn = getattr(obj, "grad_fn", operations.DoNothingBackward())
 
     @property
     def grad(self):
@@ -80,7 +87,7 @@ class Variable(np.ndarray):
                 other = np.atleast_2d(other) if matrix else np.atleast_1d(other)
 
             other = np.asarray(other, float)  # okay since self is float
-            other = Variable(other, requires_grad=False, retain_grad=False)
+            other = Variable(other, requires_grad=False, retains_grad=False)
 
         return other
 
@@ -123,7 +130,7 @@ class Variable(np.ndarray):
         result = Variable(
             data,
             requires_grad=self.requires_grad or other_requires_grad,
-            retain_grad=False,
+            retains_grad=False,
             grad_fn=grad_fn,
         )
         return result
@@ -293,9 +300,12 @@ class Variable(np.ndarray):
 
     def _minmax(self, axis=None, keepdims=False, do_max=True):
         if do_max:
-            result_data_idx = super().argmax(axis=axis)
+            # we cannot use super() because the dtype is int64
+            # but our Variable class doesn't support it
+            # result_data_idx = super().argmax(axis=axis)
+            result_data_idx = np.argmax(self.data, axis=axis)
         else:
-            result_data_idx = super().argmin(axis=axis)
+            result_data_idx = np.argmin(self.data, axis=axis)
 
         if axis is None:
             result_data = np.asarray(self.data).ravel()[result_data_idx]
@@ -420,6 +430,15 @@ class Variable(np.ndarray):
         else:
             return self.transpose(0, 1)
 
+    def reshape(self, shape, order='C'):
+        result_data = np.reshape(self.data, shape)
+        result = self._create_variable(
+            data=result_data,
+            grad_fn=operations.ReshapeBackward(self),
+        )
+
+        return result
+
     # -------------------------------------------------------------
     # Some common methods which are not implemented.
     # Serves to warn the end-user.
@@ -441,5 +460,3 @@ class Variable(np.ndarray):
     @property
     def T(self):
         raise NotImplementedError("See .transpose()")
-
-

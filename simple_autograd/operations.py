@@ -352,6 +352,13 @@ class TransposeBackward(UnaryOperator):
         self.input.grad += input_grad
 
 
+class ReshapeBackward(UnaryOperator):
+    def backprop(self, out_grad: np.ndarray) -> None:
+        input_grad = np.reshape(out_grad, self.input.shape)
+        self.input.init_grad()
+        self.input.grad += input_grad
+
+
 # -------------------------------------------------------------
 # Others
 # -------------------------------------------------------------

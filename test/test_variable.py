@@ -462,3 +462,36 @@ class TestTranspose:
 
         np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
         np.testing.assert_array_almost_equal(x.grad, x_torch.grad.numpy())
+
+class TestReshape:
+    def test_complete_reduction(self, shape):
+        x_data = np.ones(shape)
+        x = Variable(x_data)
+        x_torch = torch.from_numpy(x_data)
+        x_torch.requires_grad = True
+
+        result = x.reshape(-1)
+        result.sum().backward()
+
+        result_torch = x_torch.reshape(-1)
+        result_torch.sum().backward()
+
+        np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
+        np.testing.assert_array_almost_equal(x.grad, x_torch.grad.numpy())
+
+
+    def test_complete_redution_and_backwards(self, shape):
+        x_data = np.ones(shape)
+        x = Variable(x_data)
+        x_torch = torch.from_numpy(x_data)
+        x_torch.requires_grad = True
+
+        result = x.reshape(-1).reshape(shape)
+        result.sum().backward()
+
+        result_torch = x_torch.reshape(-1).reshape(shape)
+        result_torch.sum().backward()
+
+        np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
+        np.testing.assert_array_almost_equal(x.grad, x_torch.grad.numpy())
+
