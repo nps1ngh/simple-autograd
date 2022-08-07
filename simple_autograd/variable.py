@@ -366,6 +366,9 @@ class Variable(np.ndarray):
         )
         return result
 
+    def std(self, axis=None, unbiased=True, keepdims=False, *args, **kwargs):
+        return self.var(axis, unbiased, keepdims, *args, **kwargs).sqrt()
+
     # -------------------------------------------------------------
     # Elementwise functional Operators
     # -------------------------------------------------------------
