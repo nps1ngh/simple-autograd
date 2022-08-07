@@ -338,6 +338,36 @@ class MeanBackward(ReductionOperator):
         self._update_grad(self.input, input_grad)
 
 
+class VarBackward(ReductionOperator):
+    def __init__(self, input, axis, unbiased, keepdims):
+        super().__init__(input, axis, keepdims)
+        self.unbiased = unbiased
+
+    def backprop(self, out_grad: np.ndarray) -> None:
+        if not self.input.requires_grad:
+            return
+
+        if self.axis is not None:
+            if not self.keepdims:  # only reshape if needed
+                shape = self.input.shape
+                axis = set(np.atleast_1d(self.axis))
+                # replace reduction dims with 1
+                shape = tuple(1 if i in axis else dim for i, dim in enumerate(shape))
+                out_grad = out_grad.reshape(shape)
+            n = np.prod(
+                list(self.input.shape[i] for i in np.atleast_1d(self.axis))
+            )
+
+        else:
+            # no axis
+            n = np.prod(self.input.shape)
+
+        denom = n - 1 if self.unbiased else n
+        input_grad = 2 * out_grad * np.subtract(self.input.data, np.mean(self.input.data, self.axis)) / denom
+
+        self._update_grad(self.input, input_grad)
+
+
 class MinMaxRBackward(ReductionOperator):
     def __init__(
         self,

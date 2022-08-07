@@ -355,6 +355,17 @@ class Variable(np.ndarray):
         )
         return result
 
+    def var(self, axis=None, unbiased=True, keepdims=False, *args, **kwargs):
+        keepdims = keepdims or kwargs.get("keepdim", False)
+        ddof = 1 if unbiased else 0
+        result_data = super().var(axis=axis, ddof=ddof, keepdims=keepdims)
+
+        result = self._create_variable(
+            data=result_data,
+            grad_fn=operations.VarBackward(self, axis=axis, unbiased=unbiased, keepdims=keepdims),
+        )
+        return result
+
     # -------------------------------------------------------------
     # Elementwise functional Operators
     # -------------------------------------------------------------
