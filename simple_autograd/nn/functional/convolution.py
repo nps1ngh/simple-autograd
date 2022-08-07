@@ -187,11 +187,15 @@ def conv2d(input: Array, weight: Array, padding: Union[int, tuple[int, int]] = 0
         input = Variable.ensure_is_variable(input)
         weight = Variable.ensure_is_variable(weight)
 
+        requires_grad = input.requires_grad or weight.requires_grad,
+        grad_fn = {
+            "grad_fn":Conv2dBackward(input, weight, padding=padding)
+        } if requires_grad else {}
         result = Variable(
             result,
-            requires_grad=input.requires_grad or weight.requires_grad,
+            requires_grad=requires_grad,
             retains_grad=False,
-            grad_fn=Conv2dBackward(input, weight, padding=padding),
+            **grad_fn,
         )
 
     return result
