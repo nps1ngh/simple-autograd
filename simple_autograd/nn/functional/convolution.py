@@ -113,8 +113,8 @@ def _conv2d_backward_wrt_input(weight: np.ndarray, out_grad: np.ndarray, input_s
 def _conv2d_backward_wrt_weight(input: np.ndarray, out_grad: np.ndarray, weight_shape: tuple,
                                padding: tuple[int, int] = (0, 0)) -> np.ndarray:
     """
-    Calculates the gradient with respect to the input.
-    In particular, the larger *batched* operand.
+    Calculates the gradient with respect to the weight.
+    In particular, the smaller un-batched operand.
 
     :param input: The input as a np.ndarray (not variable). [N, C_in, H, W]
     :type input: np.ndarray
