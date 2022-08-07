@@ -3,7 +3,9 @@ Contains the base class for all modules.
 """
 import abc
 import itertools
-from typing import Iterator, Any
+from typing import Iterator, Any, Union
+
+import numpy as np
 
 from ...variable import Variable
 
@@ -25,9 +27,9 @@ def _addindent(s_, numSpaces):
 
 class Module(abc.ABC):
     def __init__(self):
-        self._params: list[Variable] = []
-        self._submodules: list[Module] = []
-        self._submodule_names: list[str] = []
+        self._params: dict[str, Variable] = {}
+        self._buffers: dict[str, Union[np.ndarray, Variable]] = {}
+        self._submodules: dict[str, Module] = {}
 
         self.training: bool = True
         """ Whether the module is in training mode. """
@@ -41,26 +43,79 @@ class Module(abc.ABC):
 
     def parameters(self) -> Iterator[Variable]:
         return itertools.chain(
-            self._params, *(m.parameters() for m in self._submodules)
+            self._params.values(), *(m.parameters() for m in self._submodules.values())
         )
 
     def __setattr__(self, key, value):
         if isinstance(value, Variable) and value.requires_grad:
-            self._params.append(value)
+            self._params[key] = value
+        elif isinstance(value, np.ndarray):
+            self._buffers[key] = value
         elif issubclass(type(value), Module):
-            self._submodules.append(value)
-            self._submodule_names.append(key)
+            self._submodules[key] = value
 
         super().__setattr__(key, value)
 
     def train(self, mode: bool = True) -> None:
         if self.training != mode:
             self.training = mode
-            for m in self._submodules:
+            for m in self._submodules.values():
                 m.train()
 
     def eval(self) -> None:
         self.train(False)
+
+    def state_dict(self) -> dict[str, Union[Variable, np.ndarray]]:
+        """
+        Creates the state dict of this Module.
+        Meant to be saved using NumPy's np.savez function.
+        **In particular, the ** unary operator needs to be used.**
+
+        Example:
+        ---
+        ```python
+        model = ...
+        out_file = ...
+        state_dict = model.state_dict()
+        np.savez(out_file, **state_dict)
+        ```
+
+        :return: The state dict of the module.
+        :rtype: dict[str, Union[Variable, np.ndarray]]
+        """
+        result = {}
+
+        # update with buffers
+        result.update(self._params)
+        result.update(self._buffers)
+
+        # for children attach prefix
+        result.update(
+            (f"{child_name}.{child_key}", child_value)
+            for child_name, child in self._submodules.items()
+            for child_key, child_value in child.state_dict().items()
+        )
+
+        return result
+
+    def load_state_dict(self, state_dict: dict[str, Union[Variable, np.ndarray]], prefix: str = "") -> None:
+        """
+        Loads the given state dict.
+        Note that this is a very This is a very unsafe version of `load_state_dict`.
+
+        :param state_dict: The state dict of the module.
+        :type state_dict: dict[str, Union[Variable, np.ndarray]]
+        :param prefix: the prefix for this (sub) module. Default is ""
+        :type prefix: str
+        """
+        for key in self._params:
+            setattr(self, key, Variable(state_dict[prefix + key]))
+
+        for key in self._buffers:
+            setattr(self, key, state_dict[prefix + key])
+
+        for key, value in self._submodules.items():
+            value.load_state_dict(state_dict, prefix=prefix + key + ".")
 
     def extra_repr(self) -> str:
         return ""
@@ -74,7 +129,7 @@ class Module(abc.ABC):
         if extra_repr:
             extra_lines = extra_repr.split('\n')
         child_lines = []
-        for key, module in zip(self._submodule_names, self._submodules):
+        for key, module in self._submodules.items():
             mod_str = repr(module)
             mod_str = _addindent(mod_str, 2)
             child_lines.append('(' + key + '): ' + mod_str)

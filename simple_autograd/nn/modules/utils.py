@@ -17,7 +17,7 @@ class Sequential(Module):
             setattr(self, str(i), m)
 
     def __iter__(self):
-        return iter(self._submodules)
+        return self._submodules.values()
 
     def __getitem__(self, item) -> Module:
         return self._submodules[item]
