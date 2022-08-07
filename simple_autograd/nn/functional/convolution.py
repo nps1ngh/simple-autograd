@@ -47,10 +47,10 @@ def _conv2d(input: np.ndarray, weight: np.ndarray, padding: Union[int, tuple[int
         h_padding = w_padding = (padding, padding)
     elif isinstance(padding, tuple):
         assert len(padding) == 2, f"a pair expected but got a {len(padding)}-tuple!"
+        assert padding[0] > 0
+        assert padding[1] > 0
         h_padding = padding[:1] * 2
         w_padding = padding[1:] * 2
-        assert h_padding > 0
-        assert w_padding > 0
     else:
         raise TypeError(f"padding should be an int or a tuple of ints! Given: {padding}")
 
