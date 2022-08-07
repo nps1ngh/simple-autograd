@@ -189,7 +189,7 @@ def conv2d(input: Array, weight: Array, padding: Union[int, tuple[int, int]] = 0
 
         requires_grad = input.requires_grad or weight.requires_grad,
         grad_fn = {
-            "grad_fn":Conv2dBackward(input, weight, padding=padding)
+            "grad_fn": Conv2dBackward(input, weight, padding=padding)
         } if requires_grad else {}
         result = Variable(
             result,
