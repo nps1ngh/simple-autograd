@@ -13,3 +13,6 @@ is only added to the first occurrence. This exception also occurs even if the Te
 
 - NumPy's `ufunc.at` functions allow the `ufunc` operation to be done multiple times on a single element
 if the index to it is provided multiple times. (See `operations.IndexingBackward`.)
+
+- Just like for the gradient in matrix multiplication, the gradient for convolution
+can be calculated via convolution itself. (Convolution can be expressed as MatMul after all.)

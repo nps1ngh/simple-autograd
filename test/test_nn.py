@@ -114,3 +114,73 @@ class TestSimple:
                 model[2 * i].bias.grad.view(np.ndarray),
                 linear_layers_torch[i][1].grad.numpy(),
             )
+
+
+class TestConvolution:
+    def test(self):
+        import time
+        torch.manual_seed(42)
+        N = 32
+        C = 3
+        R = 31
+        K = 7
+        O = 6
+        x_torch = torch.randn(N, C, R, R, requires_grad=True, dtype=torch.float64)
+        w_torch = torch.randn(O, C, K, K, requires_grad=True, dtype=torch.float64)
+
+        x = Variable(x_torch.detach().numpy())
+        w = Variable(w_torch.detach().numpy())
+
+        START = time.perf_counter()
+        out_torch = torch.conv2d(x_torch, w_torch)
+        END = time.perf_counter()
+        print()
+        print(f"Torch's took time: {END - START}")
+        print()
+
+        START = time.perf_counter()
+        out = nn.functional.conv2d(x, w)
+        END = time.perf_counter()
+        print()
+        print(f"Ours took time: {END - START}")
+        print()
+
+        np.testing.assert_allclose(out.view(np.ndarray), out_torch.detach().numpy())
+
+        # now do backward pass
+        START = time.perf_counter()
+        out_torch.sum().backward()
+        END = time.perf_counter()
+        print()
+        print(f"Torch's backward took time: {END - START}")
+        print()
+
+        START = time.perf_counter()
+        out.sum().backward()
+        END = time.perf_counter()
+        print()
+        print(f"Our backward took time: {END - START}")
+        print()
+
+        np.testing.assert_allclose(x.grad, x_torch.grad.numpy())
+        np.testing.assert_allclose(w.grad, w_torch.grad.numpy())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
