@@ -29,6 +29,9 @@ class Module(abc.ABC):
         self._submodules: list[Module] = []
         self._submodule_names: list[str] = []
 
+        self.training: bool = True
+        """ Whether the module is in training mode. """
+
     @abc.abstractmethod
     def forward(self, *args, **kwargs) -> Any:
         pass
@@ -49,6 +52,15 @@ class Module(abc.ABC):
             self._submodule_names.append(key)
 
         super().__setattr__(key, value)
+
+    def train(self, mode: bool = True) -> None:
+        if self.training != mode:
+            self.training = mode
+            for m in self._submodules:
+                m.train()
+
+    def eval(self) -> None:
+        self.train(False)
 
     def extra_repr(self) -> str:
         return ""
