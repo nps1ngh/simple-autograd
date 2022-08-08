@@ -233,7 +233,7 @@ class SqrtBackward(UnaryOperator):
 
     def backprop(self, out_grad: np.ndarray) -> None:
         if self.input.requires_grad:
-            input_grad = np.reciprocal(np.multiply(2, self.output))
+            input_grad = out_grad / 2 / self.output
             self._update_grad(self.input, input_grad)
 
 
