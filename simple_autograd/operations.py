@@ -62,6 +62,14 @@ class Operator(abc.ABC):
 
 # for leaf nodes
 class DoNothingBackward(Operator):
+    # ensure that there is only one such instance
+    __instance = None
+
+    def __new__(cls):
+        if cls.__instance is None:
+            cls.__instance = super().__new__(cls)
+        return cls.__instance
+
     def backprop(self, out_grad: np.ndarray) -> None:
         pass  # leaf node, can't propagate further
 
