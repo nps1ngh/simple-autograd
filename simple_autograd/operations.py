@@ -363,7 +363,7 @@ class VarBackward(ReductionOperator):
             n = np.prod(self.input.shape)
 
         denom = n - 1 if self.unbiased else n
-        input_grad = 2 * out_grad * np.subtract(self.input.data, np.mean(self.input.data, self.axis)) / denom
+        input_grad = 2 * out_grad * np.subtract(self.input.data, np.mean(self.input.data, self.axis, keepdims=True)) / denom
 
         self._update_grad(self.input, input_grad)
 
