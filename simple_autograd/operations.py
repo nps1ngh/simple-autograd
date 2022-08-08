@@ -135,7 +135,7 @@ class DivBackward(NonCommutativeBinaryOperator):
             self._update_grad(self.a, a_grad)
 
         if self.b.requires_grad:
-            b_grad = np.negative(self.a.data) / np.power(self.b.data, 2)  # -1/x^2
+            b_grad = -out_grad * self.a.data / np.square(self.b.data)  # -1/x^2
             self._update_grad(self.b, b_grad)
 
 
