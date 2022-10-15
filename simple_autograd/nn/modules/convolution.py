@@ -39,7 +39,7 @@ class Conv2d(Module):
         result = F.conv2d(x, self.weight, padding=self.padding)
 
         if self.bias is not None:
-            result = result + self.bias[..., None, None]
+            result = result + self.bias[..., np.newaxis, np.newaxis]
 
         return result
 
