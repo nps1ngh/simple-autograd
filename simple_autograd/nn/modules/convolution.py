@@ -37,8 +37,11 @@ class Conv2d(Module):
 
     def forward(self, x):
         result = F.conv2d(x, self.weight, padding=self.padding)
+
         if self.bias is not None:
-            result = result + self.bias
+            result = result + self.bias[..., None, None]
+
+        return result
 
     def extra_repr(self) -> str:
         return (
