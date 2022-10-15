@@ -8,6 +8,7 @@ from . import operations
 
 
 class Variable(np.ndarray):
+    # see https://numpy.org/doc/stable/user/basics.subclassing.html
     def __new__(cls, input_array,
                 requires_grad=True, retains_grad=True, grad_fn=operations.DoNothingBackward(),
                 ):
