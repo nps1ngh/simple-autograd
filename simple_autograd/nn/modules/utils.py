@@ -14,13 +14,13 @@ class Sequential(Module):
         super().__init__()
 
         for i, m in enumerate(modules):
-            setattr(self, str(i), m)
+            setattr(self, f"{i}", m)
 
     def __iter__(self):
-        return self._submodules.values()
+        return iter(self._submodules.values())
 
     def __getitem__(self, item) -> Module:
-        return self._submodules[item]
+        return self._submodules[f"{item}"]
 
     def forward(self, input):
         for m in self:
