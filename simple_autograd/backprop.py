@@ -9,6 +9,21 @@ if TYPE_CHECKING:
 
 
 def _get_order(var: variable.Variable) -> list[variable.Variable]:
+    """
+    Returns the top sort in reverse order for back-propagating through
+    the computational graph.
+
+    Parameters
+    ----------
+    var : variable.Variable
+        The (root/end) variable from where to start.
+
+    Returns
+    -------
+    list[variable.Variable]
+        Variables ordered according to when to call the corresponding
+        backward method.
+    """
     assert var.grad_fn is not None, "grad_fn should not be None!"
     ts = graphlib.TopologicalSorter()
 
@@ -24,6 +39,15 @@ def _get_order(var: variable.Variable) -> list[variable.Variable]:
 
 
 def backward(var: variable.Variable):
+    """
+    Start the backward pass from the given variable.
+
+    Parameters
+    ----------
+    var : variable.Variable
+    The variable to start from. Should be a scalar array.
+
+    """
     assert var.requires_grad, "Variable does not require grad!"
     # call item to make sure it's a scalar
     _ = var.item()
