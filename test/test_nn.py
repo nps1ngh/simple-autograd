@@ -32,6 +32,28 @@ def DIMENSIONS():
     return [random.randint(1, MAX) for _ in range(NUM)]
 
 
+class TestParameters:
+    def test_linear(self):
+        I, O = 16, 32
+        linear = nn.Linear(I, O)
+
+        params = list(linear.parameters())
+
+        assert len(params) == 2
+        assert params[0].shape == (O, I)
+        assert params[1].shape == (O, )
+
+    def test_conv2d(self):
+        I, O, K = 16, 32, 5
+        linear = nn.Conv2d(I, O, K)
+
+        params = list(linear.parameters())
+
+        assert len(params) == 2
+        assert params[0].shape == (O, I, K, K)
+        assert params[1].shape == (O, )
+
+
 # The CE loss is the only untested thing
 class TestCELoss:
     @pytest.mark.parametrize("batch_size", BATCH_SIZES())
