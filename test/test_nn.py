@@ -6,17 +6,16 @@ Also, the point of this was implement autograd engine and not a neural network
 framework. (The `nn` sub-library is only used to show what it's capable of.)
 """
 import random
+from copy import deepcopy
 
+import numpy as np
 import pytest
 import torch
-import numpy as np
-import torch.nn as nn_torch
 import torch.nn.functional as F_torch
 
 import simple_autograd.nn as nn
 import simple_autograd.nn.functional as F
 from simple_autograd import Variable
-
 
 NUM = 10  # this will generate 3 * NUM * NUM many tests
 MAX = 1000
@@ -41,7 +40,7 @@ class TestParameters:
 
         assert len(params) == 2
         assert params[0].shape == (O, I)
-        assert params[1].shape == (O, )
+        assert params[1].shape == (O,)
 
     def test_conv2d(self):
         I, O, K = 16, 32, 5
@@ -51,7 +50,54 @@ class TestParameters:
 
         assert len(params) == 2
         assert params[0].shape == (O, I, K, K)
-        assert params[1].shape == (O, )
+        assert params[1].shape == (O,)
+
+
+class TestStateDicts:
+    def setup(self):
+        # this guy's forward doesn't have to work
+        # just need to check if saving loading works as intended
+        self.model = nn.Sequential(
+            nn.Linear(10, 512),
+            nn.ReLU(),
+            nn.Linear(512, 128),
+            nn.ReLU(),
+            nn.Linear(128, 10),
+            nn.ReLU(),
+            nn.Conv2d(10, 10, 7),
+            nn.CrossEntropyLoss(),
+            nn.Sequential(*[
+                nn.Linear(4, 2),
+                nn.Conv2d(10, 10, (4, 2)),
+                nn.BatchNorm2d(10),
+            ]),
+            nn.BatchNorm2d(10),
+        )
+
+    def test_creation(self):
+        assert self.model is not None
+
+        created_keys = list(self.model.state_dict().keys())
+
+        # RHS from pytorch
+        assert created_keys == ['0.weight', '0.bias', '2.weight', '2.bias', '4.weight', '4.bias', '6.weight', '6.bias',
+                                '8.0.weight', '8.0.bias', '8.1.weight', '8.1.bias', '8.2.weight', '8.2.bias',
+                                '8.2.running_mean', '8.2.running_var', '8.2.num_batches_tracked', '9.weight', '9.bias',
+                                '9.running_mean', '9.running_var', '9.num_batches_tracked']
+
+    def test_loading(self):
+        assert self.model is not None
+
+        created = self.model.state_dict()
+        modified = deepcopy(created)
+        del created
+        for v in modified.values():
+            v.view(np.ndarray).fill(-1)
+
+        self.model.load_state_dict(modified)
+
+        for v in self.model.state_dict().values():
+            assert v.flatten()[0] == -1
 
 
 # The CE loss is the only untested thing
@@ -186,23 +232,3 @@ class TestConvolution:
 
         np.testing.assert_allclose(x.grad, x_torch.grad.numpy())
         np.testing.assert_allclose(w.grad, w_torch.grad.numpy())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
