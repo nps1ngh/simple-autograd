@@ -1,7 +1,26 @@
 """
-Contains utility modules.
+Contains utility modules and functions.
 """
 from .base import Module
+
+
+def count_parameters(m: Module, requires_grad: bool = True):
+    """
+    Counts the number of parameters in the given module `m`.
+    Parameters
+    ----------
+    m : Module
+        The module, whose parameters need to be counted.
+    requires_grad : bool
+        Whether to only count parameters requiring grad.
+        Default: True
+
+    Returns
+    -------
+    int
+        Number of total parameters in the module.
+    """
+    return sum(p.size for p in m.parameters() if p.requires_grad == requires_grad)
 
 
 class Identity(Module):
