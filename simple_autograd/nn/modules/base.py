@@ -101,7 +101,7 @@ class Module(abc.ABC):
     def load_state_dict(self, state_dict: dict[str, Union[Variable, np.ndarray]], prefix: str = "") -> None:
         """
         Loads the given state dict.
-        Note that this is a very This is a very unsafe version of `load_state_dict`.
+        Note that this is a very unsafe version of `load_state_dict`.
 
         :param state_dict: The state dict of the module.
         :type state_dict: dict[str, Union[Variable, np.ndarray]]
