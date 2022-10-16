@@ -1,7 +1,7 @@
 """
-Contains layers as functions.
+Contains loss functions.
 """
-from typing import Union, Optional
+from typing import Union
 
 import numpy as np
 
