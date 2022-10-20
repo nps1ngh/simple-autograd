@@ -458,6 +458,12 @@ class Variable(np.ndarray):
     # -------------------------------------------------------------
     # Shape methods
     # -------------------------------------------------------------
+    def swapaxes(self, axis1: int, axis2: int):
+        """
+        The same as `.transpose`.
+        """
+        return self.transpose(axis1, axis2)
+
     def transpose(self, source: int, destination: int):
         """
         For transposing axes.
