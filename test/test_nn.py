@@ -232,3 +232,51 @@ class TestConvolution:
 
         np.testing.assert_allclose(x.grad, x_torch.grad.numpy())
         np.testing.assert_allclose(w.grad, w_torch.grad.numpy())
+
+
+class TestPooling:
+    # torch doesn't have min_pool2d
+    @pytest.mark.parametrize("pool", ["max_pool2d", "avg_pool2d"])
+    def test(self, pool):
+        import time
+        torch.manual_seed(42)
+        N = 32
+        C = 3
+        R = 31
+        KS = (2, 3)
+        x_torch = torch.randn(N, C, R, R, requires_grad=True, dtype=torch.float64)
+
+        x = Variable(x_torch.detach().numpy())
+
+        START = time.perf_counter()
+        out_torch = getattr(torch.nn.functional, pool)(x_torch, KS)
+        END = time.perf_counter()
+        print()
+        print(f"Torch's took time: {END - START}")
+        print()
+
+        START = time.perf_counter()
+        out = getattr(nn.functional, pool)(x, KS)
+        END = time.perf_counter()
+        print()
+        print(f"Ours took time: {END - START}")
+        print()
+
+        np.testing.assert_allclose(out.view(np.ndarray), out_torch.detach().numpy())
+
+        # now do backward pass
+        START = time.perf_counter()
+        out_torch.sum().backward()
+        END = time.perf_counter()
+        print()
+        print(f"Torch's backward took time: {END - START}")
+        print()
+
+        START = time.perf_counter()
+        out.sum().backward()
+        END = time.perf_counter()
+        print()
+        print(f"Our backward took time: {END - START}")
+        print()
+
+        np.testing.assert_allclose(x.grad, x_torch.grad.numpy())
