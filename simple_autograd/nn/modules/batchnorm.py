@@ -7,7 +7,7 @@ import numpy as np
 
 from .base import Module
 from .. import functional as F
-from ... import Variable
+from ...variable import Variable
 
 
 class BatchNorm2d(Module):

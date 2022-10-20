@@ -15,7 +15,7 @@ import torch.nn.functional as F_torch
 
 import simple_autograd.nn as nn
 import simple_autograd.nn.functional as F
-from simple_autograd import Variable
+from simple_autograd.variable import Variable
 
 NUM = 10  # this will generate 3 * NUM * NUM many tests
 MAX = 1000
