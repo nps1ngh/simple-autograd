@@ -11,7 +11,7 @@ import pytest
 import torch  # for comparing
 
 import simple_autograd.operations as O
-from simple_autograd import Variable
+from simple_autograd.variable import Variable
 
 
 def get_var():
