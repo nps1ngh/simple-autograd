@@ -328,7 +328,8 @@ class Variable(np.ndarray):
                 np.asarray(self.data), np.expand_dims(result_data_idx, axis), axis
             )
             if not keepdims:
-                result_data = result_data.reshape(self.shape[:axis] + self.shape[axis + 1:])
+                _axis = axis if axis >= 0 else axis + self.ndim
+                result_data = result_data.reshape(self.shape[:_axis] + self.shape[_axis + 1:])
 
         result = self._create_variable(
             data=result_data,

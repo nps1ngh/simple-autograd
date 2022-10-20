@@ -93,7 +93,7 @@ EXPRESSIONS = [
               ] + [
                   f"a.{r_op}({args})"
                   for r_op in ["sum", "min", "max", "mean", "var", "std"]
-                  for args in ["", "0", "0, keepdim=True"]
+                  for args in ["", "0", "0, keepdim=True", "-1", "-1, keepdim=True"]
               ] + [
                   f"a.{binary_f_op}(b)"
                   for binary_f_op in ["maximum", "minimum"]
