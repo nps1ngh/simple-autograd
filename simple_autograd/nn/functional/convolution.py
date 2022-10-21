@@ -177,7 +177,7 @@ class Conv2dBackward(BinaryOperator):
 
         # simpler case
         if self.b.requires_grad:
-            b_grad = _conv2d_backward_wrt_weight(self.a.view(np.ndarray), out_grad, self.b.shape, self.padding)
+            b_grad = _conv2d_backward_wrt_weight(self.a.view(np.ndarray), out_grad, self.padding)
             self._update_grad(self.b, b_grad)
 
 
