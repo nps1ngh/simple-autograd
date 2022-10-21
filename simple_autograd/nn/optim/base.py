@@ -20,3 +20,9 @@ class Optimizer(abc.ABC):
     def zero_grad(self) -> None:
         for p in self.parameters:
             p.zero_grad()
+
+    def state_dict(self):
+        return {}
+
+    def load_state_dict(self, state_dict):
+        pass

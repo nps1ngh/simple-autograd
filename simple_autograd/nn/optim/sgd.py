@@ -49,3 +49,18 @@ class SGD(Optimizer):
                 np.add(p, step, out=p)
             else:
                 np.subtract(p, step, out=p)
+
+    def state_dict(self):
+        if self.vel is None:
+            return super().state_dict()
+        else:
+            return {
+                str(i): p
+                for i, p in enumerate(self.parameters)
+            }
+
+    def load_state_dict(self, state_dict):
+        size = 0 if self.vel is None else len(self.vel)
+        assert len(state_dict) == size
+
+        self.vel = [state_dict[str(i)] for i in range(size)]

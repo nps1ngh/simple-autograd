@@ -41,3 +41,15 @@ class Adam(Optimizer):
             p = p.view(np.ndarray)
             np.subtract(p, step, out=p)
 
+    def state_dict(self):
+        m_sd = {f"m.{i}": p for i, p in enumerate(self.m)}
+        v_sd = {f"v.{i}": p for i, p in enumerate(self.v)}
+        m_sd.update(v_sd)
+        assert len(m_sd) == 2 * len(self.m)
+        return m_sd
+
+    def load_state_dict(self, state_dict):
+        assert len(state_dict) == 2 * len(self.m)
+
+        self.m = [state_dict[f"m.{i}"] for i in range(len(self.m))]
+        self.v = [state_dict[f"v.{i}"] for i in range(len(self.v))]
