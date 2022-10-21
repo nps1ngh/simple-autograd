@@ -298,9 +298,13 @@ class ReductionOperator(UnaryOperator):
         keepdims: bool,
     ):
         super().__init__(input)
-        if axis is not None and axis < 0:
-            # a bit hacky but works
-            axis = input.ndim + axis
+
+        # a bit hacky but works
+        if axis is not None:
+            if isinstance(axis, tuple):
+                axis = tuple(a + input.ndim if a < 0 else a for a in axis)
+            else:
+                axis = axis + input.ndim if axis < 0 else axis
         self.axis = axis
         self.keepdims = keepdims
 

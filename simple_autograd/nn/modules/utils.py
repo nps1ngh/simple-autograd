@@ -50,7 +50,7 @@ class Sequential(Module):
 class Flatten(Module):
     def forward(self, input):
         batch_size = input.shape[0]
-        return input.reshape(batch_size, -1)
+        return input.reshape((batch_size, -1))
 
 
 class Exp(Module):

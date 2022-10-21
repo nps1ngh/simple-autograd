@@ -47,5 +47,6 @@ class Conv2d(Module):
         return (
             f"in_ch={self.in_ch}, "
             f"out_ch={self.out_ch}, "
+            f"kernel_size={self.kernel_size}, "
             f"bias={self.bias is not None}"
         )
