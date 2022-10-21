@@ -128,7 +128,7 @@ def _conv2d_backward_wrt_input(weight: np.ndarray, out_grad: np.ndarray, input_s
     return grad
 
 
-def _conv2d_backward_wrt_weight(input: np.ndarray, out_grad: np.ndarray, weight_shape: tuple,
+def _conv2d_backward_wrt_weight(input: np.ndarray, out_grad: np.ndarray,
                                padding: tuple[int, int] = (0, 0)) -> np.ndarray:
     """
     Calculates the gradient with respect to the weight.
