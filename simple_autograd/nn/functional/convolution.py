@@ -145,8 +145,6 @@ def _conv2d_backward_wrt_weight(input: np.ndarray, out_grad: np.ndarray, weight_
     :return: The gradient for the input operand. [C_out, C_in, K_h, K_w]
     :rtype: np.ndarray
     """
-    batch_size, c_in, h, w = input.shape
-    c_out = weight_shape[0]
     p_h, p_w = padding
 
     # get input padded
