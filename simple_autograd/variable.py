@@ -400,6 +400,24 @@ class Variable(np.ndarray):
 
         return result
 
+    def sin(self):
+        result_data = np.sin(self.data)
+        result = self._create_variable(
+            data=result_data,
+            grad_fn=operations.SinBackward(self),
+        )
+
+        return result
+
+    def cos(self):
+        result_data = np.cos(self.data)
+        result = self._create_variable(
+            data=result_data,
+            grad_fn=operations.CosBackward(self),
+        )
+
+        return result
+
     def sigmoid(self):
         exp_m_x = np.exp(np.negative(self.data))
         result_data = np.reciprocal(1 + exp_m_x)

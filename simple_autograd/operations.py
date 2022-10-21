@@ -267,6 +267,20 @@ class ExpBackward(UnaryOperator):
             self._update_grad(self.input, input_grad)
 
 
+class SinBackward(UnaryOperator):
+    def backprop(self, out_grad: np.ndarray) -> None:
+        if self.input.requires_grad:
+            input_grad = out_grad * np.cos(self.input.data)
+            self._update_grad(self.input, input_grad)
+
+
+class CosBackward(UnaryOperator):
+    def backprop(self, out_grad: np.ndarray) -> None:
+        if self.input.requires_grad:
+            input_grad = - out_grad * np.sin(self.input.data)
+            self._update_grad(self.input, input_grad)
+
+
 class SigmoidBackward(UnaryOperator):
     def __init__(self, input: variable.Variable, exp_m_x: variable.Variable, out: variable.Variable):
         super().__init__(input)

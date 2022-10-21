@@ -89,7 +89,7 @@ EXPRESSIONS = [
                   for binary_op in ["+", "-", "*", "/", "**"]
               ] + [
                   f"a.{f_op}()"
-                  for f_op in ["relu", "sqrt", "exp", "sigmoid", "log"]
+                  for f_op in ["relu", "sqrt", "exp", "sin", "cos", "sigmoid", "log"]
               ] + [
                   f"a.{r_op}({args})"
                   for r_op in ["sum", "min", "max", "mean", "var", "std"]
