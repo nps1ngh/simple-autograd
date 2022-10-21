@@ -24,7 +24,7 @@ class Adam(Optimizer):
 
         beta1, beta2 = self.betas
         for i, p in enumerate(self.parameters):
-            g = p.grad or np.zeros(p.shape)
+            g = p.grad if p.grad is not None else np.zeros(p.shape)
             if self.maximize:
                 g = -g
 

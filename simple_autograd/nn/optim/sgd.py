@@ -27,7 +27,7 @@ class SGD(Optimizer):
         self.steps += 1  # increment step counter
 
         for i, p in enumerate(self.parameters):
-            g = p.grad or np.zeros(p.shape)
+            g = p.grad if p.grad is not None else np.zeros(p.shape)
 
             if self.weight_decay != 0:
                 g = g + self.weight_decay * p.view(np.ndarray)
