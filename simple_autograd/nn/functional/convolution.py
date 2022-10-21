@@ -5,10 +5,14 @@ This one is special and was perhaps the most challenging one.
 
 The additional dependency on scipy comes from here
 """
+import warnings
 from typing import Union
 
 import numpy as np
-from scipy import signal
+try:
+    from scipy import signal
+except ImportError:
+    warnings.warn("`scipy.signal` was not found. Convolution will not work!")
 
 from ...operations import BinaryOperator
 from ...variable import Variable
