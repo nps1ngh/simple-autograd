@@ -20,6 +20,36 @@ Array = Union[Variable, np.ndarray]
 Number = Union[int, float]
 ArrayOrNumber = Union[Array, Number]
 
+# which conv to use
+# non-vec included to understand what is going on (it is more understandable)
+VECTORIZED_CONV = True
+
+
+if VECTORIZED_CONV:
+    # faster version using np.vectorize
+    def _base_correlate(x, w):
+        return signal.correlate(x, w, mode="valid")[0]
+
+    # could be batch too but we "fix" vectorizing weights
+    _multi_kernel_correlate = np.vectorize(_base_correlate, signature="(c,h,w),(c,kh,kw)->(oh,ow)")
+
+    # finally, vectorize batch dimension
+    _base_conv2d = np.vectorize(_multi_kernel_correlate, signature="(c,h,w),(o,c,kh,kw)->(o,oh,ow)")
+else:
+    def _base_conv2d(input: np.ndarray, weight: np.ndarray) -> np.ndarray:
+        # determine output size and init output array
+        batch_size, in_channels, h, w = input.shape
+        out_channels, _, h_k, w_k = weight.shape
+        h_result = 1 + (h - h_k)
+        w_result = 1 + (w - w_k)
+        output = np.empty((batch_size, out_channels, h_result, w_result))
+
+        for b in range(batch_size):  # select image
+            for k in range(out_channels):  # select kernel
+                output[b, k] = signal.correlate(input[b], weight[k], mode="valid")
+
+        return output
+
 
 def _conv2d(input: np.ndarray, weight: np.ndarray, padding: Union[int, tuple[int, int]] = 0) -> np.ndarray:
     """
@@ -60,16 +90,7 @@ def _conv2d(input: np.ndarray, weight: np.ndarray, padding: Union[int, tuple[int
     del h_padding
     del w_padding
 
-    # determine output size and init output array
-    batch_size, in_channels, h, w = input.shape
-    out_channels, _, h_k, w_k = weight.shape
-    h_result = 1 + (h - h_k)
-    w_result = 1 + (w - w_k)
-    output = np.empty((batch_size, out_channels, h_result, w_result))
-
-    for b in range(batch_size):  # select image
-        for k in range(out_channels):  # select kernel
-            output[b, k] = signal.correlate(input[b], weight[k], mode="valid")
+    output = _base_conv2d(input, weight)
 
     return output
 
@@ -100,12 +121,9 @@ def _conv2d_backward_wrt_input(weight: np.ndarray, out_grad: np.ndarray, input_s
     p_k_w = w - k_w + p_w
     weight = np.pad(weight, [(0, 0), (0, 0), (p_k_h, p_k_h), (p_k_w, p_k_w)])
 
-    # init
-    grad = np.empty(input_shape)
+    weight = weight.swapaxes(0, 1)
 
-    for b in range(batch_size):  # select image
-        for c in range(c_in):  # select input channel
-            grad[b, c] = signal.correlate(weight[:, c], out_grad[b], mode="valid")
+    grad = _base_conv2d(weight, out_grad).swapaxes(0, 1)
 
     return grad
 
@@ -134,12 +152,10 @@ def _conv2d_backward_wrt_weight(input: np.ndarray, out_grad: np.ndarray, weight_
     # get input padded
     input = np.pad(input, [(0, 0), (0, 0), (p_h, p_h), (p_w, p_w)])
 
-    # init
-    grad = np.empty(weight_shape)
+    input = input.swapaxes(0, 1)
+    out_grad = out_grad.swapaxes(0, 1)
 
-    for c in range(c_in):  # select channel
-        for k in range(c_out):  # select kernel
-            grad[k, c] = signal.correlate(input[:, c], out_grad[:, k], mode="valid")
+    grad = _base_conv2d(input, out_grad).swapaxes(0, 1)
 
     return grad
 
