@@ -4,7 +4,7 @@ Does not support any parameter groups.
 """
 import abc
 
-from ..variable import Variable
+from simple_autograd.variable import Variable
 
 
 class Optimizer(abc.ABC):
