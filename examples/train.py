@@ -1,11 +1,12 @@
 """
 Simple training script.
 """
-import warnings
 import argparse
+import warnings
 from pathlib import Path
 
 import numpy as np
+
 try:
     from tqdm import tqdm
 except ImportError:
@@ -15,6 +16,9 @@ except ImportError:
 import simple_autograd.nn as nn
 import simple_autograd.nn.data as data
 import simple_autograd.nn.optim as optim
+
+# (!) local import
+import models
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -151,47 +155,21 @@ def load_checkpoint(checkpoint_file: Path, model: nn.Module, optimizer: optim.Op
 
 
 def get_model(args):
-    CNN = "cnn"
-    MLP = "mlp"
-    layers = []
+    model_name = args.model.lower()
 
-    if args.model == MLP:
-        layers += [nn.Flatten()]
-
-    # first layer
-    if args.model == MLP:
-        layers += [nn.Linear(28 * 28, 128)]
-    elif args.model == CNN:
-        layers += [nn.Conv2d(1, 16, 3)]
-
+    if model_name == "cnn":
+        norm_layer = None
         if args.batch_norm:
-            layers += [nn.BatchNorm2d(16)]
+            norm_layer = nn.BatchNorm2d
+        model = models.CNN(input_channels=1, hidden_channels=[16, 32], kernel_sizes=[3, 3], max_pool_ks=[2, 2],
+                           output_classes=10, norm_layer=norm_layer)
+    elif model_name == "mlp":
+        model = models.MLP(sizes=[28 * 28, 128, 64, 10], flatten_first=True)
+    else:
+        raise ValueError(f"Unknown model name: '{model_name}'")
 
-    # act func
-    layers += [nn.ReLU()]
-    if args.model == CNN:
-        layers += [nn.MaxPool2d(2)]
+    return model
 
-    # second layers
-    if args.model == MLP:
-        layers += [nn.Linear(128, 64)]
-    elif args.model == CNN:
-        layers += [nn.Conv2d(16, 32, 3)]
-
-        if args.batch_norm:
-            layers += [nn.BatchNorm2d(32)]
-
-    layers += [nn.ReLU()]
-    if args.model == CNN:
-        layers += [nn.MaxPool2d(2)]
-
-    # final layer
-    if args.model == MLP:
-        layers += [nn.Linear(64, 10)]
-    elif args.model == CNN:
-        layers += [nn.Flatten(), nn.Linear(32 * 5 * 5, 10)]
-
-    return nn.Sequential(*layers)
 
 
 def get_optimizer(args, model: nn.Module):
