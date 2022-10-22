@@ -27,6 +27,9 @@ class MLP(nn.Module):
             layers += [nn.ReLU()]
             prev = h
 
+        # remove last act layer as it's not needed
+        layers = layers[:-1]
+
         self.mlp = nn.Sequential(*layers)
 
     def forward(self, x):
