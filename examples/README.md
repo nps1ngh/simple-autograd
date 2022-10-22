@@ -59,7 +59,7 @@ tested against torch.
 
 The following trains an MLP using SGD:
 ```shell
-python -m examples.train --data_root tmp/data --save_path tmp/model \
+python -m train --data_root tmp/data --save_path tmp/model \
   --model mlp --lr 0.1 --optimizer sgd --batch_size 64 \
   --epoch 10 --verbose
 ```
@@ -69,7 +69,7 @@ and a final test accuracy of 95.32% in 1.5 minutes.
 
 The following trains an MLP using Adam:
 ```shell
-python -m examples.train --data_root tmp/data --save_path tmp/model \
+python -m train --data_root tmp/data --save_path tmp/model \
   --model mlp --lr 1e-3 --optimizer adam --batch_size 64 \
   --epoch 10 --verbose
 ```
@@ -79,7 +79,7 @@ and a final test accuracy of 97.32%.
 
 The following trains a CNN using Adam:
 ```shell
-python -m examples.train --data_root tmp/data --save_path tmp/model \
+python -m train --data_root tmp/data --save_path tmp/model \
   --model cnn --lr 1e-3 --optimizer adam --batch_size 64 \
   --epoch 10 --verbose
 ```
