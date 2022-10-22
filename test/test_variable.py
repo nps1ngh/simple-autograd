@@ -528,3 +528,29 @@ class TestSoftmax:
 
         np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
         np.testing.assert_array_almost_equal(x.grad, x_torch.grad.numpy())
+
+
+class TestComplexExpression:
+    def test(self):
+        np.random.seed(42)
+        x = Variable(np.random.randn(3, 4, 5))
+        y = np.random.randn(5, 6)
+
+        # expression in numpy
+        (
+            ((x @ y).cos().mean((0, -1), keepdim=True)[:, [1, 1, 2, -1, 0, 0], None, :] * y)
+            .swapaxes(0, 1)
+            .var()
+            .backward()
+        )
+
+        x_torch = torch.from_numpy(x.view(np.ndarray)).requires_grad_()
+        y_torch = torch.from_numpy(y)
+        (
+            ((x_torch @ y_torch).cos().mean((0, -1), keepdim=True)[:, [1, 1, 2, -1, 0, 0], None, :] * y_torch)
+            .transpose(0, 1)
+            .var()
+            .backward()
+        )
+
+        np.testing.assert_array_almost_equal(x.grad, x_torch.grad.numpy())
