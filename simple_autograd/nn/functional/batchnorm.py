@@ -9,7 +9,7 @@ from ...operations import Operator
 from ...variable import Variable
 
 
-__all__ = ["batch_norm_2d"]
+__all__ = ["batch_norm_1d", "batch_norm_2d"]
 
 
 # typedefs
@@ -21,6 +21,53 @@ ArrayOrNumber = Union[Array, Number]
 
 # overwrite simple implementation with a more efficient one
 MORE_EFFICIENT = False
+
+
+def batch_norm_1d(
+        input: Array,
+        running_mean: Optional[np.ndarray] = None,
+        running_var: Optional[np.ndarray] = None,
+        weight: Optional[Array] = None,
+        bias: Optional[Array] = None,
+        training: bool = False,
+        momentum: float = 0.1,
+        eps: float = 1e-05,
+) -> Array:
+    assert input.ndim == 2
+
+    result = input
+    if training:
+        mean = result.mean(axis=0)
+        var = result.var(axis=0)
+
+        # update stats if given
+        if running_mean is not None:
+            running_mean[:] = (1 - momentum) * running_mean + np.multiply(momentum, mean.data)
+        if running_var is not None:
+            running_var[:] = (1 - momentum) * running_var + np.multiply(momentum, var.data)
+
+    else:
+        assert (
+                running_mean is not None and running_var is not None
+        ), "Running{mean,var} are required during evaluation!"
+
+        mean = running_mean
+        var = running_var
+
+    # normalize
+    result = result - mean
+    if isinstance(var, Variable):
+        denom = (var + eps).sqrt()
+    else:
+        denom = np.sqrt(var + eps)
+    result = result / denom
+
+    if weight is not None:
+        result = result * weight
+    if bias is not None:
+        result = result + bias
+
+    return result
 
 
 def batch_norm_2d(
@@ -77,6 +124,7 @@ def batch_norm_2d(
 # the simpler version above is used, which uses the base already implemented operators
 # testing batch norm is difficult because of the difference in how numpy does
 # its reduction operators on arrays.
+# only for 2d
 if MORE_EFFICIENT:
     def _batch_norm_2d(
         input: np.ndarray,  # no Variable!

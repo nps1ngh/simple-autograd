@@ -165,12 +165,14 @@ def get_model(args):
         model = models.CNN(input_channels=1, hidden_channels=[16, 32], kernel_sizes=[3, 3], max_pool_ks=[2, 2],
                            output_classes=10, norm_layer=norm_layer)
     elif model_name == "mlp":
-        model = models.MLP(sizes=[28 * 28, 128, 64, 10], flatten_first=True)
+        norm_layer = None
+        if args.batch_norm:
+            norm_layer = nn.BatchNorm1d
+        model = models.MLP(sizes=[28 * 28, 128, 64, 10], flatten_first=True, norm_layer=norm_layer)
     else:
         raise ValueError(f"Unknown model name: '{model_name}'")
 
     return model
-
 
 
 def get_optimizer(args, model: nn.Module):

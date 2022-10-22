@@ -11,7 +11,7 @@ class MLP(nn.Module):
     """
     A multi-layer perceptron.
     """
-    def __init__(self, sizes, flatten_first=False):
+    def __init__(self, sizes, flatten_first=False, norm_layer=None):
         super().__init__()
         self.sizes = sizes
         self.flatten_first = flatten_first
@@ -21,14 +21,14 @@ class MLP(nn.Module):
             layers = [nn.Flatten()]
 
         prev = sizes[0]
-        for h in sizes[1:]:
+        for h in sizes[1:-1]:
             layers += [nn.Linear(prev, h)]
-
+            if norm_layer:
+                layers += [norm_layer(h)]
             layers += [nn.ReLU()]
             prev = h
 
-        # remove last act layer as it's not needed
-        layers = layers[:-1]
+        layers += [nn.Linear(prev, sizes[-1])]
 
         self.mlp = nn.Sequential(*layers)
 

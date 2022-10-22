@@ -10,7 +10,7 @@ from .. import functional as F
 from ...variable import Variable
 
 
-class BatchNorm2d(Module):
+class _BatchNorm(Module):
     def __init__(self, num_features: int, eps: float = 1e-05, momentum: float = 0.1, affine: bool = True,
                  track_running_stats: bool = True):
         super().__init__()
@@ -55,6 +55,47 @@ class BatchNorm2d(Module):
             f"affine={self.affine}, track_running_stats={self.track_running_stats}"
         )
 
+
+class BatchNorm1d(_BatchNorm):
+    def forward(self, input):
+        """
+        This is taken from
+        https://github.com/pytorch/pytorch/blob/v1.11.0/torch/nn/modules/batchnorm.py
+        """
+        assert input.ndim == 2, f"Expected 2D input, got {input.ndim}D instead!"
+
+        momentum = self.momentum
+        if self.training and self.track_running_stats and self.num_batches_tracked is not None:
+            self.num_batches_tracked += 1
+            if momentum is None:
+                # cumulative
+                momentum = 1.0 / float(self.num_batches_tracked)
+
+        if not self.training or self.track_running_stats:
+            r_mean = self.running_mean
+            r_var = self.running_var
+        else:
+            r_mean = None
+            r_var = None
+
+        if self.training:
+            bn_training = True
+        else:
+            bn_training = (r_mean is not None) and (r_var is not None)
+
+        return F.batch_norm_1d(
+            input,
+            r_mean,
+            r_var,
+            weight=self.weight,
+            bias=self.bias,
+            training=bn_training,
+            momentum=momentum,
+            eps=self.eps,
+        )
+
+
+class BatchNorm2d(_BatchNorm):
     def forward(self, input):
         """
         This is taken from
