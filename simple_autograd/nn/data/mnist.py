@@ -75,6 +75,10 @@ class MNIST:
         for file in self.FILES[self.train].values():
             path = self.data_path / file
             if not path.exists():
+                if not self.download:
+                    raise RuntimeError(
+                        f"File {file} not found! You can enable auto-downloading via `download=True`"
+                    )
                 urlretrieve(self.URL + file, path)
                 print(f"Downloaded {file} to {path}")
 
