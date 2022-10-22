@@ -9,7 +9,7 @@ import numpy as np
 
 from ...variable import Variable
 
-__all__ = ["max_pool2d", "min_pool2d", "avg_pool2d"]
+__all__ = ["get_2D_patches", "max_pool2d", "min_pool2d", "avg_pool2d"]
 
 # typedefs
 Array = Union[Variable, np.ndarray]
@@ -17,7 +17,7 @@ Number = Union[int, float]
 ArrayOrNumber = Union[Array, Number]
 
 
-def _get_2D_patches(
+def get_2D_patches(
     input: "Array", patch_size: "Tuple[int, int]", flatten: "bool" = False,
 ) -> "Array":
     """
