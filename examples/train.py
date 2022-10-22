@@ -23,6 +23,8 @@ def get_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument("--data_root", type=Path, help="where to store data")
+    parser.add_argument("--download_data", action="store_true", default=False,
+                        help="Whether to automatically download the data if not present.")
     parser.add_argument("--save_path", type=Path, help="where to save artifacts")
     parser.add_argument("--auto_continue", action="store_true", default=False, help="Continue from previous checkpoint.")
 
@@ -219,8 +221,11 @@ def get_datasets(args):
         transform = lambda x: x.reshape((x.shape[0], 1, *x.shape[1:]))
     else:
         transform = None  # use standard
-    train_dataset = data.MNIST(data_root=args.data_root, train=True, target_transform=lambda x: x, transform=transform)
-    test_dataset = data.MNIST(data_root=args.data_root, train=False, target_transform=lambda x: x, transform=transform)
+    download = args.download_data
+    train_dataset = data.MNIST(data_root=args.data_root, train=True, download=download,
+                               target_transform=lambda x: x, transform=transform)
+    test_dataset = data.MNIST(data_root=args.data_root, train=False, download=download,
+                              target_transform=lambda x: x, transform=transform)
 
     return train_dataset, test_dataset
 
