@@ -1,11 +1,11 @@
 import warnings
 
 try:
-    from . import nn
+    import simple_autograd.nn as nn
 except ImportError as e:
     warnings.warn(
         f"Error importing `nn`! Only importing autograd engine. {e}"
     )
 
-from .variable import Variable
-from .backprop import backward
+from simple_autograd.variable import Variable
+from simple_autograd.backprop import backward
