@@ -25,6 +25,7 @@ class MLP(nn.Module):
             layers += [nn.Linear(prev, h)]
 
             layers += [nn.ReLU()]
+            prev = h
 
         self.mlp = nn.Sequential(*layers)
 
