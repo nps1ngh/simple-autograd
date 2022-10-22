@@ -47,8 +47,8 @@ def layer_norm(
     result = input
 
     # calc stats
-    mean = result.mean(axis=-1)
-    var = result.var(axis=-1)
+    mean = result.mean(axis=-1, keepdim=True)
+    var = result.var(axis=-1, keepdim=True)
 
     # normalize
     result = result - mean
