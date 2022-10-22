@@ -58,6 +58,9 @@ For more details, see corresponding README under [examples](examples).
 
 
 ## Installation
+Requires at least `python>=3.9` as it depends on the new 
+[`graphlib`](https://docs.python.org/3/library/graphlib.html) module.
+
 Although, `torch` is used for testing,
 the only real dependency is `numpy` for 
 the engine itself.
