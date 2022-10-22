@@ -102,6 +102,14 @@ class NonCommutativeBinaryOperator(BinaryOperator, abc.ABC):
             super().__init__(a, b)
 
 
+class NaryOperator(Operator, abc.ABC):
+    def __init__(self, *variables: variable.Variable):
+        self.variables = variables
+
+    def get_inputs(self):
+        return self.variables
+
+
 class NegBackward(UnaryOperator):
     def backprop(self, out_grad: np.ndarray) -> None:
         if self.input.requires_grad:
@@ -460,3 +468,20 @@ class IndexingBackward(UnaryOperator):
 
         # yes this is all you need to update the grad
         np.add.at(self.input.grad, self.item_idx, out_grad)
+
+
+class ConcatenateBackward(NaryOperator):
+    def __init__(self, *variables, axis=0):
+        super().__init__(*variables)
+        self.axis = axis
+
+    def backprop(self, out_grad: np.ndarray) -> None:
+        axis = self.axis
+        i = 0  # position on axis
+        og = out_grad.swapaxes(0, axis)
+        for var in self.variables:
+            j = i + var.shape[axis]
+            if var.requires_grad:
+                self._update_grad(var, og[i:j].swapaxes(axis, 0))
+
+            i = j

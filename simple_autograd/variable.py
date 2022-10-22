@@ -474,6 +474,14 @@ class Variable(np.ndarray):
         else:
             super().__setitem__(key, value)
 
+    def concat(self, *others, axis=0):
+        others = [self.ensure_is_variable(other) for other in others]
+        result_data = np.concatenate([self.data] + [other.data for other in others], axis=axis)
+        result = self._create_variable(
+            data=result_data, grad_fn=operations.ConcatenateBackward(self, *others, axis=axis),
+        )
+        return result
+
     # -------------------------------------------------------------
     # Shape methods
     # -------------------------------------------------------------
