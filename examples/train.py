@@ -2,6 +2,7 @@
 Simple training script.
 """
 import argparse
+import pdb
 import warnings
 from pathlib import Path
 
@@ -195,15 +196,9 @@ def get_optimizer(args, model: nn.Module):
 
 
 def get_datasets(args):
-    if args.model == "cnn":
-        transform = lambda x: x.reshape((x.shape[0], 1, *x.shape[1:]))
-    else:
-        transform = None  # use standard
     download = args.download_data
-    train_dataset = data.MNIST(data_root=args.data_root, train=True, download=download,
-                               target_transform=lambda x: x, transform=transform)
-    test_dataset = data.MNIST(data_root=args.data_root, train=False, download=download,
-                              target_transform=lambda x: x, transform=transform)
+    train_dataset = data.MNIST(data_root=args.data_root, train=True, download=download)
+    test_dataset = data.MNIST(data_root=args.data_root, train=False, download=download)
 
     return train_dataset, test_dataset
 

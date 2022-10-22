@@ -12,15 +12,22 @@ from typing import Union, Optional, Callable, Generator
 
 
 def standard_transform(x: np.ndarray) -> np.ndarray:
+    # add channel dimension
+    x = x.reshape((x.shape[0], 1, *x.shape[1:]))
+    # convert and normalize to 0-1
     return x.astype(np.float32) / 255
 
 
-def standard_target_transform(lbls: np.ndarray) -> np.ndarray:
+def onehot_transform(lbls: np.ndarray) -> np.ndarray:
     n_rows = len(lbls)
     n_cols = lbls.max() + 1
     onehot = np.zeros((n_rows, n_cols), dtype=np.uint8)
     onehot[np.arange(n_rows), lbls] = 1
     return onehot
+
+
+def standard_target_transform(lbls: np.ndarray) -> np.ndarray:
+    return lbls
 
 
 class MNIST:
