@@ -68,7 +68,7 @@ class CNN(nn.Module):
         layers += [nn.MaxPool2d(second_layer_mpks)]
 
         # final layer
-        layers += [nn.Global1x1AvgPool2d(), nn.Linear(second_layer_chs, output_classes)]
+        layers += [nn.GlobalAvgPool2d(), nn.Linear(second_layer_chs, output_classes)]
 
         self.cnn = nn.Sequential(*layers)
 

@@ -31,7 +31,7 @@ class AvgPool2d(_Pool2d):
         return F.avg_pool2d(x, self.kernel_size)
 
 
-class Global1x1AvgPool2d(Module):
+class GlobalAvgPool2d(Module):
     def forward(self, x):
         assert x.ndim == 4, f"Expected 4D input, but got {x.ndim}D!"
         return x.mean((2, 3))
