@@ -18,3 +18,4 @@ from .utils import (
 )
 from .act import ReLU, LeakyReLU
 from .losses import CrossEntropyLoss
+from .attention import MultiHeadSelfAttention

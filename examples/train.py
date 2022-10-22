@@ -33,7 +33,7 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument("--save_path", type=Path, help="where to save artifacts")
     parser.add_argument("--auto_continue", action="store_true", default=False, help="Continue from previous checkpoint.")
 
-    parser.add_argument("--model", default="mlp", choices=["cnn", "mlp"], help="What model to use. [cnn,mlp]")
+    parser.add_argument("--model", default="mlp", choices=["cnn", "mlp", "vit"], help="What model to use. [cnn,mlp,vit]")
     parser.add_argument("--batch_norm", action="store_true", default=False, help="Whether to use BN in model.")
 
     parser.add_argument("--lr", type=float, help="lr to use")
@@ -169,6 +169,9 @@ def get_model(args):
         if args.batch_norm:
             norm_layer = nn.BatchNorm1d
         model = models.MLP(sizes=[28 * 28, 128, 64, 10], flatten_first=True, norm_layer=norm_layer)
+    elif model_name == "vit":
+        model = models.ViT(img_size=28, in_channels=1, patch_size=7, num_classes=10,
+                           emb_dim=32, num_heads=4, num_blocks=1)
     else:
         raise ValueError(f"Unknown model name: '{model_name}'")
 

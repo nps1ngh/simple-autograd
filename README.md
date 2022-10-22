@@ -45,6 +45,7 @@ This contains among others:
 
 For a comprehensive example using these, please see the included
 [training script](examples/train.py) under [examples](examples).
+It allows training a simple MLP, a CNN or a ViT.
 
 The purpose of this was to test and demonstrate the capabilities of the engine.
 The script can train a simple MLP using `nn` up to +95% test accuracy on the MNIST

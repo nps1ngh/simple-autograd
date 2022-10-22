@@ -3,7 +3,7 @@
 The script allows to train simple models on 
 the [MNIST](https://en.wikipedia.org/wiki/MNIST_database) dataset.
 
-One can choose between an MLP or CNN for the model
+One can choose between an MLP, a CNN or a ViT for the model
 and between SGD and Adam for the optimizer.
 One can easily change the model architecture using
 the different layers from the `simple_autograd.nn` module.
@@ -15,7 +15,7 @@ saving and resuming from checkpoints.
 CLI Usage:
 ```
 usage: train.py [-h] [--data_root DATA_ROOT] [--download_data] [--save_path SAVE_PATH] [--auto_continue]
-                [--model {cnn,mlp}] [--batch_norm] [--lr LR] [--epochs EPOCHS] [--batch_size BATCH_SIZE]
+                [--model {cnn,mlp,vit}] [--batch_norm] [--lr LR] [--epochs EPOCHS] [--batch_size BATCH_SIZE]
                 [--optimizer {sgd,adam}] [--weight_decay WEIGHT_DECAY] [--sgd_momentum SGD_MOMENTUM] [--sgd_nesterov]
                 [--sgd_dampening SGD_DAMPENING] [--adam_betas B B] [--verbose]
 
@@ -27,7 +27,7 @@ optional arguments:
   --save_path SAVE_PATH
                         where to save artifacts (default: None)
   --auto_continue       Continue from previous checkpoint. (default: False)
-  --model {cnn,mlp}     What model to use. [cnn,mlp] (default: mlp)
+  --model {cnn,mlp,vit} What model to use. [cnn,mlp,vit] (default: mlp)
   --batch_norm          Whether to use BN in model. (default: False)
   --lr LR               lr to use (default: None)
   --epochs EPOCHS       number of epochs to train for (default: None)
@@ -50,7 +50,7 @@ optional arguments:
 Training the CNN is really slow compared to the MLP 
 even though it has a significantly lower
 number of parameters (ironic, I know).
-It takes about 5 hours per epoch for the CNN and
+It takes about 3 hours per epoch for the CNN and
 not even 10 seconds per epoch for the MLP.
 The reason for this is the rather unoptimized convolution
 operator.
@@ -76,6 +76,15 @@ python -m train --data_root tmp/data --save_path tmp/model \
 It achieves almost 93% test accuracy after the first epoch
 and a final test accuracy of 97.32%.
 
+The following trains a (mini) ViT using Adam:
+```shell
+python -m train --data_root tmp/data --save_path tmp/model \
+  --model mlp --lr 1e-3 --optimizer adam --batch_size 64 \
+  --epoch 20 --verbose  # requires longer training
+```
+As a ViT is already overkill for MNIST, this one has been scaled
+down to about 15K parameters (less than the CNN (18K)).
+It takes about 1.5 minutes per epoch and reaches about 95.77% final test accuracy.
 
 The following trains a CNN using Adam:
 ```shell
