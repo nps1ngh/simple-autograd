@@ -101,9 +101,10 @@ class Variable(np.ndarray):
 
     def detach(self) -> "Variable":
         """
-        Returns the current variable but with gradient removed.
+        Returns the current variable but completely detached from all
+        gradient computation.
         """
-        return Variable(self, requires_grad=self.requires_grad)
+        return Variable(self, requires_grad=False, retains_grad=False)
 
     def retain_grad(self, value=True) -> None:
         """
