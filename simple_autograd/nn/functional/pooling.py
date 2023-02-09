@@ -78,7 +78,7 @@ def max_pool2d(input, kernel_size):
     assert input.ndim == 4, f"4D input expected! Got {input.ndim}D!"
     kernel_size = _ensure_2d_tuple(kernel_size)
 
-    patches = _get_2D_patches(input, kernel_size, flatten=True)
+    patches = get_2D_patches(input, kernel_size, flatten=True)
     return patches.max(-1)
 
 
@@ -101,7 +101,7 @@ def min_pool2d(input, kernel_size):
     assert input.ndim == 4, f"4D input expected! Got {input.ndim}D!"
     kernel_size = _ensure_2d_tuple(kernel_size)
 
-    patches = _get_2D_patches(input, kernel_size, flatten=True)
+    patches = get_2D_patches(input, kernel_size, flatten=True)
     return patches.min(-1)
 
 
@@ -124,7 +124,7 @@ def avg_pool2d(input, kernel_size):
     assert input.ndim == 4, f"4D input expected! Got {input.ndim}D!"
     kernel_size = _ensure_2d_tuple(kernel_size)
 
-    patches = _get_2D_patches(input, kernel_size, flatten=True)
+    patches = get_2D_patches(input, kernel_size, flatten=True)
     return patches.mean(-1)
 
 
