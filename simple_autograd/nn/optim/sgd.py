@@ -56,10 +56,13 @@ class SGD(Optimizer):
         else:
             return {
                 str(i): p
-                for i, p in enumerate(self.parameters)
+                for i, p in enumerate(self.vel)
             }
 
     def load_state_dict(self, state_dict):
+        if self.vel is None:
+            return
+        
         size = 0 if self.vel is None else len(self.vel)
         assert len(state_dict) == size
 
