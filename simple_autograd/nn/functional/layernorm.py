@@ -2,12 +2,11 @@
 Layer Norm implementation.
 Unlike PyTorch only normalizes over single feature *tensor* dimension.
 """
-from typing import Union, Optional
+from typing import Optional, Union
 
 import numpy as np
 
 from ...variable import Variable
-
 
 __all__ = ["layer_norm"]
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING, Optional, Union, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple, Union
 
 import numpy as np
 
@@ -177,7 +177,7 @@ class MatMulBackward(NonCommutativeBinaryOperator):
             a = np.asarray(self.a.data)
             if a.ndim > 1:
                 a = np.swapaxes(a, -1, -2)
-            b_grad = a  @ out_grad
+            b_grad = a @ out_grad
             self._update_grad(self.b, b_grad)
 
 
@@ -214,7 +214,11 @@ class PowBackward(NonCommutativeBinaryOperator):
     def backprop(self, out_grad: np.ndarray) -> None:
         if self.a.requires_grad:
             # np.func can process memoryviews no problem
-            a_grad = out_grad * self.b.data * np.power(self.a.data, np.subtract(self.b.data, 1))
+            a_grad = (
+                out_grad
+                * self.b.data
+                * np.power(self.a.data, np.subtract(self.b.data, 1))
+            )
             self._update_grad(self.a, a_grad)
 
         if self.b.requires_grad:
@@ -285,19 +289,26 @@ class SinBackward(UnaryOperator):
 class CosBackward(UnaryOperator):
     def backprop(self, out_grad: np.ndarray) -> None:
         if self.input.requires_grad:
-            input_grad = - out_grad * np.sin(self.input.data)
+            input_grad = -out_grad * np.sin(self.input.data)
             self._update_grad(self.input, input_grad)
 
 
 class SigmoidBackward(UnaryOperator):
-    def __init__(self, input: variable.Variable, exp_m_x: variable.Variable, out: variable.Variable):
+    def __init__(
+        self,
+        input: variable.Variable,
+        exp_m_x: variable.Variable,
+        out: variable.Variable,
+    ):
         super().__init__(input)
         self.exp_m_x = exp_m_x
         self.out = out
 
     def backprop(self, out_grad: np.ndarray) -> None:
         if self.input.requires_grad:
-            input_grad = np.multiply(out_grad, self.exp_m_x.data) * np.square(self.out.data)
+            input_grad = np.multiply(out_grad, self.exp_m_x.data) * np.square(
+                self.out.data
+            )
             self._update_grad(self.input, input_grad)
 
 
@@ -306,6 +317,7 @@ class LogBackward(UnaryOperator):
         if self.input.requires_grad:
             input_grad = np.divide(out_grad, self.input.data)
             self._update_grad(self.input, input_grad)
+
 
 # -------------------------------------------------------------
 # Reduction Operators
@@ -391,16 +403,21 @@ class VarBackward(ReductionOperator):
                 # replace reduction dims with 1
                 shape = tuple(1 if i in axis else dim for i, dim in enumerate(shape))
                 out_grad = out_grad.reshape(shape)
-            n = np.prod(
-                list(self.input.shape[i] for i in np.atleast_1d(self.axis))
-            )
+            n = np.prod(list(self.input.shape[i] for i in np.atleast_1d(self.axis)))
 
         else:
             # no axis
             n = np.prod(self.input.shape)
 
         denom = n - 1 if self.unbiased else n
-        input_grad = 2 * out_grad * np.subtract(self.input.data, np.mean(self.input.data, self.axis, keepdims=True)) / denom
+        input_grad = (
+            2
+            * out_grad
+            * np.subtract(
+                self.input.data, np.mean(self.input.data, self.axis, keepdims=True)
+            )
+            / denom
+        )
 
         self._update_grad(self.input, input_grad)
 

@@ -1,8 +1,8 @@
 """
 Contains loss implementations.
 """
-from .base import Module
 from .. import functional as F
+from .base import Module
 
 
 class CrossEntropyLoss(Module):

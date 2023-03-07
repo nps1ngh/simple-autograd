@@ -66,11 +66,13 @@ class TestStateDicts:
             nn.ReLU(),
             nn.Conv2d(10, 10, 7),
             nn.CrossEntropyLoss(),
-            nn.Sequential(*[
-                nn.Linear(4, 2),
-                nn.Conv2d(10, 10, (4, 2)),
-                nn.BatchNorm2d(10),
-            ]),
+            nn.Sequential(
+                *[
+                    nn.Linear(4, 2),
+                    nn.Conv2d(10, 10, (4, 2)),
+                    nn.BatchNorm2d(10),
+                ]
+            ),
             nn.BatchNorm2d(10),
         )
 
@@ -80,10 +82,30 @@ class TestStateDicts:
         created_keys = list(self.model.state_dict().keys())
 
         # RHS from pytorch
-        assert created_keys == ['0.weight', '0.bias', '2.weight', '2.bias', '4.weight', '4.bias', '6.weight', '6.bias',
-                                '8.0.weight', '8.0.bias', '8.1.weight', '8.1.bias', '8.2.weight', '8.2.bias',
-                                '8.2.running_mean', '8.2.running_var', '8.2.num_batches_tracked', '9.weight', '9.bias',
-                                '9.running_mean', '9.running_var', '9.num_batches_tracked']
+        assert created_keys == [
+            "0.weight",
+            "0.bias",
+            "2.weight",
+            "2.bias",
+            "4.weight",
+            "4.bias",
+            "6.weight",
+            "6.bias",
+            "8.0.weight",
+            "8.0.bias",
+            "8.1.weight",
+            "8.1.bias",
+            "8.2.weight",
+            "8.2.bias",
+            "8.2.running_mean",
+            "8.2.running_var",
+            "8.2.num_batches_tracked",
+            "9.weight",
+            "9.bias",
+            "9.running_mean",
+            "9.running_var",
+            "9.num_batches_tracked",
+        ]
 
     def test_loading(self):
         assert self.model is not None
@@ -187,6 +209,7 @@ class TestSimple:
 class TestConvolution:
     def test(self):
         import time
+
         torch.manual_seed(42)
         N = 32
         C = 3
@@ -239,6 +262,7 @@ class TestPooling:
     @pytest.mark.parametrize("pool", ["max_pool2d", "avg_pool2d"])
     def test(self, pool):
         import time
+
         torch.manual_seed(42)
         N = 32
         C = 3

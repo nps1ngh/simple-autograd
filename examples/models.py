@@ -5,9 +5,7 @@ import numpy as np
 
 import simple_autograd.nn as nn
 import simple_autograd.nn.functional as F
-
 from simple_autograd import Variable
-
 
 __all__ = ["MLP", "CNN", "ViT"]
 
@@ -16,6 +14,7 @@ class MLP(nn.Module):
     """
     A multi-layer perceptron.
     """
+
     def __init__(self, sizes, flatten_first=False, norm_layer=None):
         super().__init__()
         self.sizes = sizes
@@ -45,10 +44,23 @@ class CNN(nn.Module):
     """
     A very basic 2-layer CNN model.
     """
-    def __init__(self, input_channels, hidden_channels, kernel_sizes, max_pool_ks, output_classes, norm_layer=None):
-        assert len(hidden_channels) == 2, "Expected a length 2 sequence of hidden channels!"
+
+    def __init__(
+        self,
+        input_channels,
+        hidden_channels,
+        kernel_sizes,
+        max_pool_ks,
+        output_classes,
+        norm_layer=None,
+    ):
+        assert (
+            len(hidden_channels) == 2
+        ), "Expected a length 2 sequence of hidden channels!"
         assert len(kernel_sizes) == 2, "Expected a length 2 sequence of kernel sizes!"
-        assert len(max_pool_ks) == 2, "Expected a length 2 sequence of max pool kernel sizes!"
+        assert (
+            len(max_pool_ks) == 2
+        ), "Expected a length 2 sequence of max pool kernel sizes!"
         super().__init__()
 
         first_layer_chs, second_layer_chs = hidden_channels
@@ -109,7 +121,17 @@ class ViT(nn.Module):
     """
     ViT based on https://www.youtube.com/watch?v=ovB0ddFtzzA
     """
-    def __init__(self, img_size, in_channels, patch_size, num_classes, emb_dim, num_heads, num_blocks):
+
+    def __init__(
+        self,
+        img_size,
+        in_channels,
+        patch_size,
+        num_classes,
+        emb_dim,
+        num_heads,
+        num_blocks,
+    ):
         super().__init__()
 
         self.img_size = img_size
@@ -121,7 +143,9 @@ class ViT(nn.Module):
         self.patch_linear_proj = nn.Linear(num_patch_pixels * in_channels, emb_dim)
 
         self.cls_token = Variable(np.zeros((1, 1, emb_dim)))
-        self.pos_embed = Variable(np.zeros((1, 1 + (img_size // patch_size) ** 2, emb_dim)))
+        self.pos_embed = Variable(
+            np.zeros((1, 1 + (img_size // patch_size) ** 2, emb_dim))
+        )
 
         blocks = []
         for _ in range(num_blocks - 1):

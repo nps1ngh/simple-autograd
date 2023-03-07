@@ -1,8 +1,9 @@
 from __future__ import annotations
-import graphlib
-import numpy as np
 
+import graphlib
 from typing import TYPE_CHECKING
+
+import numpy as np
 
 if TYPE_CHECKING:
     from . import variable

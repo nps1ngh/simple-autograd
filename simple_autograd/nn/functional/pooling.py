@@ -3,7 +3,7 @@ Pooling operations with grad support.
 
 Requires skimage!
 """
-from typing import Union, Tuple
+from typing import Tuple, Union
 
 import numpy as np
 
@@ -18,7 +18,9 @@ ArrayOrNumber = Union[Array, Number]
 
 
 def get_2D_patches(
-    input: "Array", patch_size: "Tuple[int, int]", flatten: "bool" = False,
+    input: "Array",
+    patch_size: "Tuple[int, int]",
+    flatten: "bool" = False,
 ) -> "Array":
     """
     Create 2D patches of given patch_size out of given input.
@@ -43,7 +45,7 @@ def get_2D_patches(
     kH, kW = patch_size
 
     # "shorten" array
-    input = input[..., :(H // kH) * kH, :(W // kW) * kW]
+    input = input[..., : (H // kH) * kH, : (W // kW) * kW]
 
     # from https://stackoverflow.com/questions/31527755/extract-blocks-or-patches-from-numpy-array
     patches = input.reshape((N, C, H // kH, kH, W // kW, kW)).swapaxes(3, 4)
@@ -126,6 +128,3 @@ def avg_pool2d(input, kernel_size):
 
     patches = get_2D_patches(input, kernel_size, flatten=True)
     return patches.mean(-1)
-
-
-

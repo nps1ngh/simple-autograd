@@ -5,9 +5,9 @@ from typing import Optional
 
 import numpy as np
 
-from .base import Module
-from .. import functional as F
 from ...variable import Variable
+from .. import functional as F
+from .base import Module
 
 
 class LayerNorm(Module):
@@ -32,9 +32,7 @@ class LayerNorm(Module):
             self.bias.view(np.ndarray).fill(0.0)
 
     def extra_repr(self):
-        return (
-            f"{self.num_features}, eps={self.eps}, affine={self.affine}"
-        )
+        return f"{self.num_features}, eps={self.eps}, affine={self.affine}"
 
     def forward(self, x):
         return F.layer_norm(
@@ -43,4 +41,3 @@ class LayerNorm(Module):
             bias=self.bias,
             eps=self.eps,
         )
-

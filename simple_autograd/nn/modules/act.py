@@ -1,8 +1,8 @@
 """
 Contains activation functions as Modules.
 """
-from .base import Module
 from .. import functional as F
+from .base import Module
 
 
 class ReLU(Module):
@@ -17,5 +17,3 @@ class LeakyReLU(Module):
 
     def forward(self, input):
         return F.leaky_relu(input, self.negative_slope)
-
-

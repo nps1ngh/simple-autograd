@@ -1,13 +1,12 @@
 """
 Batch Norm implementation.
 """
-from typing import Union, Optional
+from typing import Optional, Union
 
 import numpy as np
 
 from ...operations import Operator
 from ...variable import Variable
-
 
 __all__ = ["batch_norm_1d", "batch_norm_2d"]
 
@@ -24,14 +23,14 @@ MORE_EFFICIENT = False
 
 
 def batch_norm_1d(
-        input: Array,
-        running_mean: Optional[np.ndarray] = None,
-        running_var: Optional[np.ndarray] = None,
-        weight: Optional[Array] = None,
-        bias: Optional[Array] = None,
-        training: bool = False,
-        momentum: float = 0.1,
-        eps: float = 1e-05,
+    input: Array,
+    running_mean: Optional[np.ndarray] = None,
+    running_var: Optional[np.ndarray] = None,
+    weight: Optional[Array] = None,
+    bias: Optional[Array] = None,
+    training: bool = False,
+    momentum: float = 0.1,
+    eps: float = 1e-05,
 ) -> Array:
     assert input.ndim == 2
 
@@ -42,13 +41,17 @@ def batch_norm_1d(
 
         # update stats if given
         if running_mean is not None:
-            running_mean[:] = (1 - momentum) * running_mean + np.multiply(momentum, mean.data)
+            running_mean[:] = (1 - momentum) * running_mean + np.multiply(
+                momentum, mean.data
+            )
         if running_var is not None:
-            running_var[:] = (1 - momentum) * running_var + np.multiply(momentum, var.data)
+            running_var[:] = (1 - momentum) * running_var + np.multiply(
+                momentum, var.data
+            )
 
     else:
         assert (
-                running_mean is not None and running_var is not None
+            running_mean is not None and running_var is not None
         ), "Running{mean,var} are required during evaluation!"
 
         mean = running_mean
@@ -89,13 +92,17 @@ def batch_norm_2d(
 
         # update stats if given
         if running_mean is not None:
-            running_mean[:] = (1 - momentum) * running_mean + np.multiply(momentum, mean.data)
+            running_mean[:] = (1 - momentum) * running_mean + np.multiply(
+                momentum, mean.data
+            )
         if running_var is not None:
-            running_var[:] = (1 - momentum) * running_var + np.multiply(momentum, var.data)
+            running_var[:] = (1 - momentum) * running_var + np.multiply(
+                momentum, var.data
+            )
 
     else:
         assert (
-                running_mean is not None and running_var is not None
+            running_mean is not None and running_var is not None
         ), "Running{mean,var} are required during evaluation!"
 
         mean = running_mean
@@ -126,6 +133,7 @@ def batch_norm_2d(
 # its reduction operators on arrays.
 # only for 2d
 if MORE_EFFICIENT:
+
     def _batch_norm_2d(
         input: np.ndarray,  # no Variable!
         running_mean: Optional[np.ndarray] = None,
@@ -174,7 +182,6 @@ if MORE_EFFICIENT:
 
         return result, (mean, var, denom)
 
-
     class BatchNorm2dBackward(Operator):
         def __init__(
             self,
@@ -206,7 +213,9 @@ if MORE_EFFICIENT:
         def backprop(self, out_grad: np.ndarray) -> None:
             #  The backward pass is based on https://kevinzakka.github.io/2016/09/14/batch_normalization/
             if self.input.requires_grad:
-                dxhat = np.multiply(out_grad, self.weight.view(np.ndarray)[None, ..., None, None])
+                dxhat = np.multiply(
+                    out_grad, self.weight.view(np.ndarray)[None, ..., None, None]
+                )
 
                 N = np.prod([self.input.shape[i] for i in range(4) if i != 1])
                 input_grad = (
@@ -215,7 +224,9 @@ if MORE_EFFICIENT:
                         - dxhat.sum(axis=(0, 2, 3), keepdims=True)
                         - np.multiply(
                             self.input.data,
-                            np.multiply(dxhat, self.input.data).sum(axis=(0, 2, 3), keepdims=True),
+                            np.multiply(dxhat, self.input.data).sum(
+                                axis=(0, 2, 3), keepdims=True
+                            ),
                         )
                     )
                     / N
@@ -231,11 +242,9 @@ if MORE_EFFICIENT:
                 bias_grad = out_grad.sum(axis=(0, 2, 3))
                 self._update_grad(self.bias, bias_grad)
 
-
     def _ensure_is_variable_or_None(x: Union[Array, None]) -> Optional[Variable]:
         if x is not None:
             return Variable.ensure_is_variable(x)
-
 
     def batch_norm_2d(
         input: Array,
@@ -271,9 +280,14 @@ if MORE_EFFICIENT:
         """
         w = None if weight is None else weight.view(np.ndarray)
         b = None if bias is None else bias.view(np.ndarray)
-        result_data, cache = _batch_norm_2d(input, running_mean, running_var, w, b, training, momentum, eps)
+        result_data, cache = _batch_norm_2d(
+            input, running_mean, running_var, w, b, training, momentum, eps
+        )
 
-        if any(isinstance(obj, Variable) and obj.requires_grad for obj in [input, weight, bias]):
+        if any(
+            isinstance(obj, Variable) and obj.requires_grad
+            for obj in [input, weight, bias]
+        ):
             input = Variable.ensure_is_variable(input)
             if weight is not None:
                 weight = Variable.ensure_is_variable(weight)
@@ -285,14 +299,10 @@ if MORE_EFFICIENT:
                 result_data,
                 requires_grad=True,
                 retains_grad=False,
-                grad_fn=BatchNorm2dBackward(input, mean, var, denom, weight, bias)
+                grad_fn=BatchNorm2dBackward(input, mean, var, denom, weight, bias),
             )
 
         else:
             result = result_data
 
         return result
-
-
-
-

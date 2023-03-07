@@ -1,8 +1,8 @@
 """
 Pooling layers
 """
-from .base import Module
 from .. import functional as F
+from .base import Module
 
 
 class _Pool2d(Module):

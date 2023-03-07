@@ -5,9 +5,9 @@ from typing import Union
 
 import numpy as np
 
-from .base import Module
-from .. import functional as F
 from ...variable import Variable
+from .. import functional as F
+from .base import Module
 
 
 def _ensure_tuple(x: Union[int, tuple[int, int]]):
@@ -18,8 +18,14 @@ def _ensure_tuple(x: Union[int, tuple[int, int]]):
 
 
 class Conv2d(Module):
-    def __init__(self, in_channels: int, out_channels: int, kernel_size: Union[int, tuple[int, int]], bias: bool = True,
-                 padding: Union[int, tuple[int, int]] = (0, 0)):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: Union[int, tuple[int, int]],
+        bias: bool = True,
+        padding: Union[int, tuple[int, int]] = (0, 0),
+    ):
         super().__init__()
 
         self.in_ch = in_channels
@@ -29,7 +35,9 @@ class Conv2d(Module):
 
         # init like in torch.nn.Linear
         sqrt_k = 1 / np.sqrt(in_channels)
-        self.weight = Variable(sqrt_k * np.random.rand(out_channels, in_channels, *self.kernel_size))
+        self.weight = Variable(
+            sqrt_k * np.random.rand(out_channels, in_channels, *self.kernel_size)
+        )
         if bias:
             self.bias = Variable(sqrt_k * np.random.rand(out_channels))
         else:

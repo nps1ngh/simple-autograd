@@ -8,7 +8,17 @@ class SGD(Optimizer):
     This is a very simple implementation of SGD.
     """
 
-    def __init__(self, params, lr, momentum=0, dampening=0, weight_decay=0, nesterov=False, *, maximize=False):
+    def __init__(
+        self,
+        params,
+        lr,
+        momentum=0,
+        dampening=0,
+        weight_decay=0,
+        nesterov=False,
+        *,
+        maximize=False
+    ):
         super().__init__(params)
         self.lr = lr
         self.momentum = momentum
@@ -54,15 +64,12 @@ class SGD(Optimizer):
         if self.vel is None:
             return super().state_dict()
         else:
-            return {
-                str(i): p
-                for i, p in enumerate(self.vel)
-            }
+            return {str(i): p for i, p in enumerate(self.vel)}
 
     def load_state_dict(self, state_dict):
         if self.vel is None:
             return
-        
+
         size = 0 if self.vel is None else len(self.vel)
         assert len(state_dict) == size
 

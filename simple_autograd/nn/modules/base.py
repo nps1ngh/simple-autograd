@@ -3,7 +3,7 @@ Contains the base class for all modules.
 """
 import abc
 import itertools
-from typing import Iterator, Any, Union
+from typing import Any, Iterator, Union
 
 import numpy as np
 
@@ -14,14 +14,14 @@ def _addindent(s_, numSpaces):
     """
     Taken from torch.nn.modules.module
     """
-    s = s_.split('\n')
+    s = s_.split("\n")
     # don't do anything for single-line stuff
     if len(s) == 1:
         return s_
     first = s.pop(0)
-    s = [(numSpaces * ' ') + line for line in s]
-    s = '\n'.join(s)
-    s = first + '\n' + s
+    s = [(numSpaces * " ") + line for line in s]
+    s = "\n".join(s)
+    s = first + "\n" + s
     return s
 
 
@@ -98,7 +98,9 @@ class Module(abc.ABC):
 
         return result
 
-    def load_state_dict(self, state_dict: dict[str, Union[Variable, np.ndarray]], prefix: str = "") -> None:
+    def load_state_dict(
+        self, state_dict: dict[str, Union[Variable, np.ndarray]], prefix: str = ""
+    ) -> None:
         """
         Loads the given state dict.
         Note that this is a very unsafe version of `load_state_dict`.
@@ -127,21 +129,21 @@ class Module(abc.ABC):
         extra_repr = self.extra_repr()
         # empty string will be split into list ['']
         if extra_repr:
-            extra_lines = extra_repr.split('\n')
+            extra_lines = extra_repr.split("\n")
         child_lines = []
         for key, module in self._submodules.items():
             mod_str = repr(module)
             mod_str = _addindent(mod_str, 2)
-            child_lines.append('(' + key + '): ' + mod_str)
+            child_lines.append("(" + key + "): " + mod_str)
         lines = extra_lines + child_lines
 
-        main_str = type(self).__name__ + '('
+        main_str = type(self).__name__ + "("
         if lines:
             # simple one-liner info, which most builtin Modules will use
             if len(extra_lines) == 1 and not child_lines:
                 main_str += extra_lines[0]
             else:
-                main_str += '\n  ' + '\n  '.join(lines) + '\n'
+                main_str += "\n  " + "\n  ".join(lines) + "\n"
 
-        main_str += ')'
+        main_str += ")"
         return main_str

@@ -35,5 +35,3 @@ def cross_entropy(inputs: Array, targets: np.ndarray, reduction="mean"):
         return losses.sum()
     else:
         raise ValueError(f"Unknown reduction method specified: '{reduction}'")
-
-

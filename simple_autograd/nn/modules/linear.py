@@ -4,9 +4,9 @@ A basic linear layer.
 
 import numpy as np
 
-from .base import Module
-from .. import functional as F
 from ...variable import Variable
+from .. import functional as F
+from .base import Module
 
 
 class Linear(Module):

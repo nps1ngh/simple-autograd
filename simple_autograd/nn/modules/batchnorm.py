@@ -5,14 +5,20 @@ from typing import Optional
 
 import numpy as np
 
-from .base import Module
-from .. import functional as F
 from ...variable import Variable
+from .. import functional as F
+from .base import Module
 
 
 class _BatchNorm(Module):
-    def __init__(self, num_features: int, eps: float = 1e-05, momentum: float = 0.1, affine: bool = True,
-                 track_running_stats: bool = True):
+    def __init__(
+        self,
+        num_features: int,
+        eps: float = 1e-05,
+        momentum: float = 0.1,
+        affine: bool = True,
+        track_running_stats: bool = True,
+    ):
         super().__init__()
 
         self.num_features = num_features
@@ -65,7 +71,11 @@ class BatchNorm1d(_BatchNorm):
         assert input.ndim == 2, f"Expected 2D input, got {input.ndim}D instead!"
 
         momentum = self.momentum
-        if self.training and self.track_running_stats and self.num_batches_tracked is not None:
+        if (
+            self.training
+            and self.track_running_stats
+            and self.num_batches_tracked is not None
+        ):
             self.num_batches_tracked += 1
             if momentum is None:
                 # cumulative
@@ -104,7 +114,11 @@ class BatchNorm2d(_BatchNorm):
         assert input.ndim == 4, f"Expected 4D input, got {input.ndim}D instead!"
 
         momentum = self.momentum
-        if self.training and self.track_running_stats and self.num_batches_tracked is not None:
+        if (
+            self.training
+            and self.track_running_stats
+            and self.num_batches_tracked is not None
+        ):
             self.num_batches_tracked += 1
             if momentum is None:
                 # cumulative

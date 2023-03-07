@@ -2,13 +2,11 @@
 Modified from https://mattpetersen.github.io/load-mnist-with-numpy
 """
 import gzip
-
 from pathlib import Path
+from typing import Callable, Generator, Optional, Union
 from urllib.request import urlretrieve
 
 import numpy as np
-
-from typing import Union, Optional, Callable, Generator
 
 
 def standard_transform(x: np.ndarray) -> np.ndarray:
@@ -135,12 +133,12 @@ class MNIST:
         i = 0
         size = len(self)
         while i < size:
-            lbls = self.labels[i:i+batch_size]
+            lbls = self.labels[i : i + batch_size]
 
             if drop_last and len(lbls) < batch_size:
                 break
 
-            imgs = self.images[i:i+batch_size]
+            imgs = self.images[i : i + batch_size]
             yield imgs, lbls
 
             i += batch_size

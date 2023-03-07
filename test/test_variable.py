@@ -3,8 +3,8 @@ Integration tests.
 Check correctness with torch.
 """
 
-import warnings
 import random
+import warnings
 
 import numpy as np
 import pytest
@@ -18,11 +18,18 @@ def get_var():
     return Variable(np.zeros(1))
 
 
-SHAPES = [(4,), (100,), (2, 3), (3, 4, 5), (2, 3, 4, 5), (2, 3, 4, 1, 6), (2, 2, 2, 2, 2, 2, 2)]
+SHAPES = [
+    (4,),
+    (100,),
+    (2, 3),
+    (3, 4, 5),
+    (2, 3, 4, 5),
+    (2, 3, 4, 1, 6),
+    (2, 2, 2, 2, 2, 2, 2),
+]
 
 
-@pytest.fixture(scope="module", autouse=True,
-                params=SHAPES)
+@pytest.fixture(scope="module", autouse=True, params=SHAPES)
 def shape(request):
     return request.param
 
@@ -77,29 +84,26 @@ class TestBasic:
         assert v.retains_grad is False
 
 
-EXPRESSIONS = [
-                  f"{unary_op}a"
-                  for unary_op in ["", "+", "-"]
-              ] + [
-                  f"a{binary_op}b"
-                  for binary_op in ["+", "-", "*", "/", "%", "**"]
-              ] + [
-                  # reversed a and b (one is a variable, one isn't)
-                  f"b{binary_op}a"
-                  for binary_op in ["+", "-", "*", "/", "**"]
-              ] + [
-                  f"a.{f_op}()"
-                  for f_op in ["relu", "sqrt", "exp", "sin", "cos", "sigmoid", "log"]
-              ] + [
-                  f"a.{r_op}({args})"
-                  for r_op in ["sum", "min", "max", "mean", "var", "std"]
-                  for args in ["", "0", "0, keepdim=True", "-1", "-1, keepdim=True"]
-              ] + [
-                  f"a.{binary_f_op}(b)"
-                  for binary_f_op in ["maximum", "minimum"]
-              ] + [
-                  "a[idx]"
-              ]
+EXPRESSIONS = (
+    [f"{unary_op}a" for unary_op in ["", "+", "-"]]
+    + [f"a{binary_op}b" for binary_op in ["+", "-", "*", "/", "%", "**"]]
+    + [
+        # reversed a and b (one is a variable, one isn't)
+        f"b{binary_op}a"
+        for binary_op in ["+", "-", "*", "/", "**"]
+    ]
+    + [
+        f"a.{f_op}()"
+        for f_op in ["relu", "sqrt", "exp", "sin", "cos", "sigmoid", "log"]
+    ]
+    + [
+        f"a.{r_op}({args})"
+        for r_op in ["sum", "min", "max", "mean", "var", "std"]
+        for args in ["", "0", "0, keepdim=True", "-1", "-1, keepdim=True"]
+    ]
+    + [f"a.{binary_f_op}(b)" for binary_f_op in ["maximum", "minimum"]]
+    + ["a[idx]"]
+)
 
 
 class TestOperatorsResultsAreVariables:
@@ -117,12 +121,19 @@ class TestOperatorsResultsAreVariables:
 
 
 class TestOperators:
-    @pytest.mark.parametrize("expr", filter(lambda e: e not in [
-        "+a",
-        "a.minimum(b)",
-        "a.maximum(b)",  # not defined for Tensors
-        "a[idx]",  # separate
-    ], EXPRESSIONS))
+    @pytest.mark.parametrize(
+        "expr",
+        filter(
+            lambda e: e
+            not in [
+                "+a",
+                "a.minimum(b)",
+                "a.maximum(b)",  # not defined for Tensors
+                "a[idx]",  # separate
+            ],
+            EXPRESSIONS,
+        ),
+    )
     def test_straight_b_scalar(self, expr, shape):
         np.random.seed(42)
         a_data = np.random.randn(*shape)
@@ -144,13 +155,21 @@ class TestOperators:
 
         np.testing.assert_array_almost_equal(a.grad, a_torch.grad.numpy())
 
-    @pytest.mark.parametrize("expr", filter(lambda e: "b" in e and e not in [
-        "+a",
-        "a.minimum(b)",
-        "a.maximum(b)",
-        "a[idx]",  # separate
-        "a%b",  # not defined
-    ], EXPRESSIONS))
+    @pytest.mark.parametrize(
+        "expr",
+        filter(
+            lambda e: "b" in e
+            and e
+            not in [
+                "+a",
+                "a.minimum(b)",
+                "a.maximum(b)",
+                "a[idx]",  # separate
+                "a%b",  # not defined
+            ],
+            EXPRESSIONS,
+        ),
+    )
     def test_reverse_b_scalar(self, expr, shape):
         np.random.seed(42)
         b_data = np.random.randn(*shape)
@@ -169,12 +188,20 @@ class TestOperators:
         np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
         np.testing.assert_array_almost_equal(b.grad, b_torch.grad.numpy())
 
-    @pytest.mark.parametrize("expr", filter(lambda e: "b" in e and e not in [
-        "+a",
-        "a.minimum(b)",
-        "a.maximum(b)",  # not defined for Tensors
-        "a[idx]",  # separate
-    ], EXPRESSIONS))
+    @pytest.mark.parametrize(
+        "expr",
+        filter(
+            lambda e: "b" in e
+            and e
+            not in [
+                "+a",
+                "a.minimum(b)",
+                "a.maximum(b)",  # not defined for Tensors
+                "a[idx]",  # separate
+            ],
+            EXPRESSIONS,
+        ),
+    )
     def test_b_array_same_shape_no_grad(self, expr, shape):
         np.random.seed(42)
         a_data = np.random.randn(*shape)
@@ -196,13 +223,21 @@ class TestOperators:
         np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
         np.testing.assert_array_almost_equal(a.grad, a_torch.grad.numpy())
 
-    @pytest.mark.parametrize("expr", filter(lambda e: "b" in e and e not in [
-        "+a",
-        "a.minimum(b)",
-        "a.maximum(b)",  # not defined for Tensors
-        "a[idx]",  # separate
-        "a%b",  # grad for other not defined
-    ], EXPRESSIONS))
+    @pytest.mark.parametrize(
+        "expr",
+        filter(
+            lambda e: "b" in e
+            and e
+            not in [
+                "+a",
+                "a.minimum(b)",
+                "a.maximum(b)",  # not defined for Tensors
+                "a[idx]",  # separate
+                "a%b",  # grad for other not defined
+            ],
+            EXPRESSIONS,
+        ),
+    )
     def test_b_array_same_shape_with_grad(self, expr, shape):
         np.random.seed(42)
         a_data = np.random.randn(*shape)
@@ -226,12 +261,20 @@ class TestOperators:
         np.testing.assert_array_almost_equal(a.grad, a_torch.grad.numpy())
         np.testing.assert_array_almost_equal(b.grad, b_torch.grad.numpy())
 
-    @pytest.mark.parametrize("expr", filter(lambda e: "b" in e and e not in [
-        "+a",
-        "a.minimum(b)",
-        "a.maximum(b)",  # not defined for Tensors
-        "a[idx]",  # separate
-    ], EXPRESSIONS))
+    @pytest.mark.parametrize(
+        "expr",
+        filter(
+            lambda e: "b" in e
+            and e
+            not in [
+                "+a",
+                "a.minimum(b)",
+                "a.maximum(b)",  # not defined for Tensors
+                "a[idx]",  # separate
+            ],
+            EXPRESSIONS,
+        ),
+    )
     def test_b_array_diff_shape_no_grad(self, expr, shape):
         if len(shape) < 1:
             return
@@ -256,13 +299,21 @@ class TestOperators:
         np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
         np.testing.assert_array_almost_equal(a.grad, a_torch.grad.numpy())
 
-    @pytest.mark.parametrize("expr", filter(lambda e: "b" in e and e not in [
-        "+a",
-        "a.minimum(b)",
-        "a.maximum(b)",  # not defined for Tensors
-        "a[idx]",  # separate
-        "a%b",  # grad for other not defined
-    ], EXPRESSIONS))
+    @pytest.mark.parametrize(
+        "expr",
+        filter(
+            lambda e: "b" in e
+            and e
+            not in [
+                "+a",
+                "a.minimum(b)",
+                "a.maximum(b)",  # not defined for Tensors
+                "a[idx]",  # separate
+                "a%b",  # grad for other not defined
+            ],
+            EXPRESSIONS,
+        ),
+    )
     def test_b_array_diff_shape_with_grad(self, expr, shape):
         if len(shape) < 1:
             return
@@ -291,24 +342,27 @@ class TestOperators:
 
 
 class TestIndexing:
-    @pytest.mark.parametrize("idx", [
-        np.s_[0],
-        np.s_[3],
-        np.s_[:3],
-        np.s_[3:],
-        np.s_[:0],
-        np.s_[0:],
-        np.s_[-1:],
-        np.s_[:-1],
-        np.s_[-4:],
-        np.s_[:-8],
-        np.s_[[0, 0, 0]],
-        np.s_[None],
-        np.s_[[1, 2, 3], [0, 4]],
-        np.s_[None, ..., None],
-        np.s_[[0, 0, 0], [1, 1]],
-        np.s_[None, ..., :3, -4, [0, 0]],
-    ])
+    @pytest.mark.parametrize(
+        "idx",
+        [
+            np.s_[0],
+            np.s_[3],
+            np.s_[:3],
+            np.s_[3:],
+            np.s_[:0],
+            np.s_[0:],
+            np.s_[-1:],
+            np.s_[:-1],
+            np.s_[-4:],
+            np.s_[:-8],
+            np.s_[[0, 0, 0]],
+            np.s_[None],
+            np.s_[[1, 2, 3], [0, 4]],
+            np.s_[None, ..., None],
+            np.s_[[0, 0, 0], [1, 1]],
+            np.s_[None, ..., :3, -4, [0, 0]],
+        ],
+    )
     def test(self, idx, shape):
         np.random.seed(42)
         x_data = np.random.randn(*shape)
@@ -435,7 +489,6 @@ class TestTranspose:
         x_torch = torch.tensor(x_data.copy())
         x_torch.requires_grad = True
 
-
         result = x.transpose(source, destination)
         result.sum().backward()
 
@@ -463,6 +516,7 @@ class TestTranspose:
         np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
         np.testing.assert_array_almost_equal(x.grad, x_torch.grad.numpy())
 
+
 class TestReshape:
     def test_complete_reduction(self, shape):
         x_data = np.ones(shape)
@@ -478,7 +532,6 @@ class TestReshape:
 
         np.testing.assert_array_almost_equal(result.data, result_torch.detach().numpy())
         np.testing.assert_array_almost_equal(x.grad, x_torch.grad.numpy())
-
 
     def test_complete_redution_and_backwards(self, shape):
         x_data = np.ones(shape)
@@ -538,7 +591,12 @@ class TestComplexExpression:
 
         # expression in numpy
         (
-            ((x @ y).cos().mean((0, -1), keepdim=True)[:, [1, 1, 2, -1, 0, 0], None, :] * y)
+            (
+                (x @ y)
+                .cos()
+                .mean((0, -1), keepdim=True)[:, [1, 1, 2, -1, 0, 0], None, :]
+                * y
+            )
             .swapaxes(0, 1)
             .var()
             .backward()
@@ -547,7 +605,12 @@ class TestComplexExpression:
         x_torch = torch.from_numpy(x.view(np.ndarray)).requires_grad_()
         y_torch = torch.from_numpy(y)
         (
-            ((x_torch @ y_torch).cos().mean((0, -1), keepdim=True)[:, [1, 1, 2, -1, 0, 0], None, :] * y_torch)
+            (
+                (x_torch @ y_torch)
+                .cos()
+                .mean((0, -1), keepdim=True)[:, [1, 1, 2, -1, 0, 0], None, :]
+                * y_torch
+            )
             .transpose(0, 1)
             .var()
             .backward()

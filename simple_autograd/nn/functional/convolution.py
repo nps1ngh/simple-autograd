@@ -9,6 +9,7 @@ import warnings
 from typing import Union
 
 import numpy as np
+
 try:
     from scipy import signal
 except ImportError:
@@ -35,11 +36,16 @@ if VECTORIZED_CONV:
         return signal.correlate(x, w, mode="valid")[0]
 
     # could be batch too but we "fix" vectorizing weights
-    _multi_kernel_correlate = np.vectorize(_base_correlate, signature="(c,h,w),(c,kh,kw)->(oh,ow)")
+    _multi_kernel_correlate = np.vectorize(
+        _base_correlate, signature="(c,h,w),(c,kh,kw)->(oh,ow)"
+    )
 
     # finally, vectorize batch dimension
-    _base_conv2d = np.vectorize(_multi_kernel_correlate, signature="(c,h,w),(o,c,kh,kw)->(o,oh,ow)")
+    _base_conv2d = np.vectorize(
+        _multi_kernel_correlate, signature="(c,h,w),(o,c,kh,kw)->(o,oh,ow)"
+    )
 else:
+
     def _base_conv2d(input: np.ndarray, weight: np.ndarray) -> np.ndarray:
         # determine output size and init output array
         batch_size, in_channels, h, w = input.shape
@@ -55,7 +61,9 @@ else:
         return output
 
 
-def _conv2d(input: np.ndarray, weight: np.ndarray, padding: Union[int, tuple[int, int]] = 0) -> np.ndarray:
+def _conv2d(
+    input: np.ndarray, weight: np.ndarray, padding: Union[int, tuple[int, int]] = 0
+) -> np.ndarray:
     """
     The actual implementation. This does not do any graph attachment etc.
     For that use `conv2d` instead.
@@ -74,7 +82,7 @@ def _conv2d(input: np.ndarray, weight: np.ndarray, padding: Union[int, tuple[int
     assert input.ndim == 4
     assert weight.ndim == 4
     assert (
-            weight.shape[1] == input.shape[1]
+        weight.shape[1] == input.shape[1]
     ), f"expected same number of input channels! {weight.shape=} and {input.shape=}"
 
     if isinstance(padding, int):
@@ -86,7 +94,9 @@ def _conv2d(input: np.ndarray, weight: np.ndarray, padding: Union[int, tuple[int
         h_padding = padding[:1] * 2
         w_padding = padding[1:] * 2
     else:
-        raise TypeError(f"padding should be an int or a tuple of ints! Given: {padding}")
+        raise TypeError(
+            f"padding should be an int or a tuple of ints! Given: {padding}"
+        )
 
     # this is the simplest way of doing it
     input = np.pad(input, [(0, 0), (0, 0), h_padding, w_padding])  # only pad h and w
@@ -99,8 +109,12 @@ def _conv2d(input: np.ndarray, weight: np.ndarray, padding: Union[int, tuple[int
     return output
 
 
-def _conv2d_backward_wrt_input(weight: np.ndarray, out_grad: np.ndarray, input_shape: tuple,
-                               padding: tuple[int, int] = (0, 0)) -> np.ndarray:
+def _conv2d_backward_wrt_input(
+    weight: np.ndarray,
+    out_grad: np.ndarray,
+    input_shape: tuple,
+    padding: tuple[int, int] = (0, 0),
+) -> np.ndarray:
     """
     Calculates the gradient with respect to the input.
     In particular, the larger *batched* operand.
@@ -132,8 +146,9 @@ def _conv2d_backward_wrt_input(weight: np.ndarray, out_grad: np.ndarray, input_s
     return grad
 
 
-def _conv2d_backward_wrt_weight(input: np.ndarray, out_grad: np.ndarray,
-                               padding: tuple[int, int] = (0, 0)) -> np.ndarray:
+def _conv2d_backward_wrt_weight(
+    input: np.ndarray, out_grad: np.ndarray, padding: tuple[int, int] = (0, 0)
+) -> np.ndarray:
     """
     Calculates the gradient with respect to the weight.
     In particular, the smaller un-batched operand.
@@ -163,7 +178,12 @@ def _conv2d_backward_wrt_weight(input: np.ndarray, out_grad: np.ndarray,
 
 
 class Conv2dBackward(BinaryOperator):
-    def __init__(self, input: Variable, weight: Variable, padding: Union[int, tuple[int, int]] = 0):
+    def __init__(
+        self,
+        input: Variable,
+        weight: Variable,
+        padding: Union[int, tuple[int, int]] = 0,
+    ):
         # a -> input image
         # b -> kernel
         super().__init__(a=input, b=weight)
@@ -176,16 +196,22 @@ class Conv2dBackward(BinaryOperator):
         # note that a is much larger than b
         # => pad b when gradient for a is required
         if self.a.requires_grad:
-            a_grad = _conv2d_backward_wrt_input(self.b.view(np.ndarray), out_grad, self.a.shape, self.padding)
+            a_grad = _conv2d_backward_wrt_input(
+                self.b.view(np.ndarray), out_grad, self.a.shape, self.padding
+            )
             self._update_grad(self.a, a_grad)
 
         # simpler case
         if self.b.requires_grad:
-            b_grad = _conv2d_backward_wrt_weight(self.a.view(np.ndarray), out_grad, self.padding)
+            b_grad = _conv2d_backward_wrt_weight(
+                self.a.view(np.ndarray), out_grad, self.padding
+            )
             self._update_grad(self.b, b_grad)
 
 
-def conv2d(input: Array, weight: Array, padding: Union[int, tuple[int, int]] = 0) -> Array:
+def conv2d(
+    input: Array, weight: Array, padding: Union[int, tuple[int, int]] = 0
+) -> Array:
     """
     Calculates the convolution of input with the weight kernel.
 
@@ -205,10 +231,12 @@ def conv2d(input: Array, weight: Array, padding: Union[int, tuple[int, int]] = 0
         input = Variable.ensure_is_variable(input)
         weight = Variable.ensure_is_variable(weight)
 
-        requires_grad = input.requires_grad or weight.requires_grad,
-        grad_fn = {
-            "grad_fn": Conv2dBackward(input, weight, padding=padding)
-        } if requires_grad else {}
+        requires_grad = (input.requires_grad or weight.requires_grad,)
+        grad_fn = (
+            {"grad_fn": Conv2dBackward(input, weight, padding=padding)}
+            if requires_grad
+            else {}
+        )
         result = Variable(
             result,
             requires_grad=requires_grad,

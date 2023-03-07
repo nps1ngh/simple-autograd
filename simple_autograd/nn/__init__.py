@@ -1,9 +1,6 @@
 """
 Code is inspired by and based on PyTorch's API.
 """
-from .modules import *
+from . import data, functional, modules, optim
 from .functional import *
-from . import functional
-from . import modules
-from . import optim
-from . import data
+from .modules import *

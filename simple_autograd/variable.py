@@ -3,15 +3,18 @@ from typing import Optional
 
 import numpy as np
 
-from . import backprop
-from . import operations
+from . import backprop, operations
 
 
 class Variable(np.ndarray):
     # see https://numpy.org/doc/stable/user/basics.subclassing.html
-    def __new__(cls, input_array,
-                requires_grad=True, retains_grad=True, grad_fn=operations.DoNothingBackward(),
-                ):
+    def __new__(
+        cls,
+        input_array,
+        requires_grad=True,
+        retains_grad=True,
+        grad_fn=operations.DoNothingBackward(),
+    ):
         obj = np.asarray(input_array).view(cls)
 
         obj.requires_grad = requires_grad
@@ -26,10 +29,16 @@ class Variable(np.ndarray):
         if obj is None:
             return
 
-        assert obj.dtype in [float, np.float32, np.float16], f"only floats supported! but was {obj.dtype}"
+        assert obj.dtype in [
+            float,
+            np.float32,
+            np.float16,
+        ], f"only floats supported! but was {obj.dtype}"
 
         self.requires_grad: bool = getattr(obj, "requires_grad", True)
-        self.retains_grad: bool = getattr(obj, "retains_grad", True) and self.requires_grad
+        self.retains_grad: bool = (
+            getattr(obj, "retains_grad", True) and self.requires_grad
+        )
 
         self._grad: Optional[np.ndarray] = None
         self.grad_fn = getattr(obj, "grad_fn", operations.DoNothingBackward())
@@ -37,7 +46,7 @@ class Variable(np.ndarray):
     @property
     def grad(self):
         if self._grad is None and not isinstance(
-                self.grad_fn, operations.DoNothingBackward
+            self.grad_fn, operations.DoNothingBackward
         ):
             warnings.warn(
                 "If you want to access the .grad attribute of a non-leaf variable "
@@ -119,7 +128,6 @@ class Variable(np.ndarray):
         if self.grad is not None:
             self.grad.fill(0)
 
-
     # -------------------------------------------------------------
     # Operators
     # -------------------------------------------------------------
@@ -151,7 +159,8 @@ class Variable(np.ndarray):
     def __neg__(self) -> "Variable":
         result_data = super().__neg__()
         result = self._create_variable(
-            data=result_data, grad_fn=operations.NegBackward(self),
+            data=result_data,
+            grad_fn=operations.NegBackward(self),
         )
         return result
 
@@ -160,7 +169,9 @@ class Variable(np.ndarray):
 
         result_data = np.add(self.data, other.data)
         result = self._create_variable(
-            data=result_data, other=other, grad_fn=operations.AddBackward(self, other),
+            data=result_data,
+            other=other,
+            grad_fn=operations.AddBackward(self, other),
         )
 
         return result
@@ -193,7 +204,9 @@ class Variable(np.ndarray):
 
         result_data = super().__mul__(other)  # other.data * self.data
         result = self._create_variable(
-            data=result_data, other=other, grad_fn=operations.MulBackward(self, other),
+            data=result_data,
+            other=other,
+            grad_fn=operations.MulBackward(self, other),
         )
 
         return result
@@ -209,7 +222,9 @@ class Variable(np.ndarray):
         else:
             result_data = super(type(other), other).__truediv__(self)
         result = self._create_variable(
-            data=result_data, other=other, grad_fn=operations.DivBackward(self, other, reverse=reverse),
+            data=result_data,
+            other=other,
+            grad_fn=operations.DivBackward(self, other, reverse=reverse),
         )
 
         return result
@@ -222,7 +237,9 @@ class Variable(np.ndarray):
 
         result_data = super().__mod__(other)
         result = self._create_variable(
-            data=result_data, other=other, grad_fn=operations.ModBackward(self, other, reverse=False),
+            data=result_data,
+            other=other,
+            grad_fn=operations.ModBackward(self, other, reverse=False),
         )
 
         return result
@@ -330,7 +347,9 @@ class Variable(np.ndarray):
             )
             if not keepdims:
                 _axis = axis if axis >= 0 else axis + self.ndim
-                result_data = result_data.reshape(self.shape[:_axis] + self.shape[_axis + 1:])
+                result_data = result_data.reshape(
+                    self.shape[:_axis] + self.shape[_axis + 1 :]
+                )
 
         result = self._create_variable(
             data=result_data,
@@ -365,7 +384,9 @@ class Variable(np.ndarray):
 
         result = self._create_variable(
             data=result_data,
-            grad_fn=operations.VarBackward(self, axis=axis, unbiased=unbiased, keepdims=keepdims),
+            grad_fn=operations.VarBackward(
+                self, axis=axis, unbiased=unbiased, keepdims=keepdims
+            ),
         )
         return result
 
@@ -378,7 +399,8 @@ class Variable(np.ndarray):
     def sqrt(self):
         result_data = np.sqrt(self.data)
         result = self._create_variable(
-            data=result_data, grad_fn=operations.SqrtBackward(self, output=result_data),
+            data=result_data,
+            grad_fn=operations.SqrtBackward(self, output=result_data),
         )
         return result
 
@@ -387,7 +409,8 @@ class Variable(np.ndarray):
 
         result_data = np.where(choose, self.data, 0)
         result = self._create_variable(
-            data=result_data, grad_fn=operations.ReLUBackward(self, chosen=choose),
+            data=result_data,
+            grad_fn=operations.ReLUBackward(self, chosen=choose),
         )
 
         return result
@@ -463,7 +486,8 @@ class Variable(np.ndarray):
         item = np.index_exp[item]
         result_data = super().view(type=np.ndarray)[item]
         result = self._create_variable(
-            data=result_data, grad_fn=operations.IndexingBackward(self, item),
+            data=result_data,
+            grad_fn=operations.IndexingBackward(self, item),
         )
         return result
 
@@ -477,9 +501,12 @@ class Variable(np.ndarray):
 
     def concat(self, *others, axis=0):
         others = [self.ensure_is_variable(other) for other in others]
-        result_data = np.concatenate([self.data] + [other.data for other in others], axis=axis)
+        result_data = np.concatenate(
+            [self.data] + [other.data for other in others], axis=axis
+        )
         result = self._create_variable(
-            data=result_data, grad_fn=operations.ConcatenateBackward(self, *others, axis=axis),
+            data=result_data,
+            grad_fn=operations.ConcatenateBackward(self, *others, axis=axis),
         )
         return result
 
@@ -533,7 +560,7 @@ class Variable(np.ndarray):
         else:
             return self.transpose(0, 1)
 
-    def reshape(self, shape, order='C'):
+    def reshape(self, shape, order="C"):
         result_data = np.reshape(self.data, shape)
         result = self._create_variable(
             data=result_data,
